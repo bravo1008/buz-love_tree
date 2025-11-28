@@ -1,0 +1,100 @@
+@import "tw-animate-css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 自定义动画（保留你的 breeze 动画） */
+@keyframes breeze {
+  0% { background-position: 50% 0%; }
+  50% { background-position: 50% 100%; }
+  100% { background-position: 50% 0%; }
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+/* OKLCH 颜色系统 —— 参照你的参考样式结构 */
+:root {
+  /* 原始语义色（OKLCH） */
+  --primary-color: oklch(0.55 0.18 240);      /* #0a2463 的 OKLCH */
+  --secondary-color: oklch(0.72 0.16 200);     /* #3e92cc 的 OKLCH */
+  --accent-color: oklch(0.68 0.24 25);         /* #d8315b 的 OKLCH */
+  --light-color: oklch(0.99 0.01 200);
+  --dark-color: oklch(0.18 0.01 200);
+
+  /* 背景渐变色（天空 → 过渡 → 草地）*/
+  --sky-start: oklch(0.92 0.12 240);
+  --sky-mid: oklch(0.96 0.08 160);
+  --sky-end: oklch(0.82 0.18 140);
+}
+
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  overflow-x: hidden;
+
+  /* 使用 OKLCH 渐变替代 HEX */
+  background: linear-gradient(
+    to bottom,
+    var(--sky-start) 0%,
+    var(--sky-mid) 40%,
+    var(--sky-end) 100%
+  );
+
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+
+  color: oklch(0.25 0.03 220); /* 深灰文字，与参考一致 */
+}
+
+/* 兼容暗色模式（可选，未来扩展） */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* 可在此定义深色版渐变，例如夜空+森林 */
+  }
+}
+
+/* Section 布局 */
+.section {
+  min-height: 100vh;
+  padding: 6rem 0;
+  position: relative;
+}
+
+/* Card 毛玻璃样式 —— 与参考中的 card 风格统一 */
+.card {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+}
+
+/* 导航下划线动画 */
+.nav-link {
+  position: relative;
+  display: inline-block;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: var(--accent-color);
+  transition: width 0.3s ease;
+}
+.nav-link:hover::after {
+  width: 100%;
+}

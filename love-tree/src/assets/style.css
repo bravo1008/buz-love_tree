@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --primary-color: #0a2463;
+    --secondary-color: #3e92cc;
+    --accent-color: #d8315b;
+    --light-color: #fffaff;
+    --dark-color: #1e1b18;
+}
+
+body {
+    font-family: 'Noto Sans SC', sans-serif;
+    color: var(--light-color);
+    overflow-x: hidden;
+
+    /* 动态渐变背景 */
+    background: linear-gradient(to bottom, #0a2463, #3e92cc, #0a2463);
+    background-size: 400% 400%;
+    animation: dayNightCycle 20s ease-in-out infinite;
+}
+
+/* 昼夜渐变动画 */
+@keyframes dayNightCycle {
+    0% { background: linear-gradient(to bottom, #1a2a6c, #1e38bafd, #1a2a6c); }
+    25% { background: linear-gradient(to bottom, #0d47a1, #42a5f5, #0d47a1); }
+    50% { background: linear-gradient(to bottom, #0a2463, #3e92cc, #0a2463); }
+    75% { background: linear-gradient(to bottom, #1a2a6c, #300eb9, #1a2a6c); }
+    100% { background: linear-gradient(to bottom, #1a2a6c, #1f44b2, #1a2a6c); }
+}
+
+/* section 大小与内边距 */
+.section {
+    min-height: 100vh;
+    padding: 6rem 0;
+    position: relative;
+}
+
+/* card 样式保留半透明背景 */
+.card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+/* 其他可选元素保持原来的样式，例如按钮、导航等 */
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--accent-color);
+    transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 100%;
+}
