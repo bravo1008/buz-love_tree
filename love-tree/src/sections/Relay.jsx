@@ -85,7 +85,7 @@ export default function Relay({ onSwipeRight }) {
 
   const loadMessages = async () => {
     try {
-      const res = await axios.get("/api/relay");
+      const res = await axios.get("https://buz-love-tree.onrender.com/api/relay");
       setItems(res.data);
     } catch {
       console.log("后端拉取失败");

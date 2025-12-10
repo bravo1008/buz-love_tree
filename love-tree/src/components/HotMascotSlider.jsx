@@ -15,7 +15,7 @@ export default function HotMascotSlider() {
   // 获取所有吉祥物并按点赞数排序[3](@ref)
   const fetchMascots = async () => {
     try {
-      const res = await fetch("/api/mascot");
+      const res = await fetch("https://buz-love-tree.onrender.com/api/mascot");
       const data = await res.json();
       if (data.success) {
         // 按点赞数降序排序[3](@ref)
@@ -52,7 +52,7 @@ export default function HotMascotSlider() {
 
   const handleLike = async (id) => {
     try {
-      const res = await fetch(`/api/mascot/${id}/like`, {
+      const res = await fetch(`https://buz-love-tree.onrender.com/api/mascot/${id}/like`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
       });

@@ -48,7 +48,7 @@ export default function Tree({ onSwipeRight }) {
   // 获取排行榜前五名
   const fetchTopMascots = async () => {
     try {
-      const res = await fetch("/api/mascot");
+      const res = await fetch("https://buz-love-tree.onrender.com/api/mascot");
       const data = await res.json();
       if (data.success) {
         // 按点赞数降序排序，取前5名
@@ -67,7 +67,7 @@ export default function Tree({ onSwipeRight }) {
   // 获取最新吉祥物
   const fetchLatestMascot = async () => {
     try {
-      const res = await fetch("/api/mascot/latest");
+      const res = await fetch("https://buz-love-tree.onrender.com/api/mascot/latest");
       const data = await res.json();
       if (data.success && data.mascot) {
         return data.mascot;

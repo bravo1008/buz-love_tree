@@ -11,7 +11,7 @@ const LetterDetailPage = () => {
   useEffect(() => {
     const fetchLetter = async () => {
       try {
-        const res = await fetch(`/api/letters/${id}`);
+        const res = await fetch(`https://buz-love-tree.onrender.com/api/letters/${id}`);
         const data = await res.json();
         if (data.letter) {
           setLetter(data.letter);
