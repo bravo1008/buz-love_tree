@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       "/api": {
-        target: "http://localhost:5000", // 后端地址
+        target: "https://buz-love-tree.onrender.com", // 后端地址
         changeOrigin: true,
         secure: false,
       },

@@ -12,7 +12,7 @@ import LetterModal from '../components/LetterModal';
 import LetterWriter from '../components/LetterWriter';
 import SwipeHintButton from "../components/SwipeHintButton"; 
 
-const API_URL = "http://localhost:5000/api/letters";
+const API_URL = "https://buz-love-tree.onrender.com/api/letters";
 
 const LetterApp = ({ onSwipeRight }) => {
   const [letters, setLetters] = useState([]);

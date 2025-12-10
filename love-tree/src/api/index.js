@@ -1,4 +1,4 @@
-export const API_BASE = "http://localhost:5000/api/map";
+export const API_BASE = "https://buz-love-tree.onrender.com/api/map";
 
 export const getAllPoints = () => fetch(`${API_BASE}/all`).then(res => res.json());
 
