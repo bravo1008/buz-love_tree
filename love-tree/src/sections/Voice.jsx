@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Container, Typography, Grid, Paper, Button, Box, CircularProgress } from '@mui/material';
 import useRecorder from '../hooks/useRecorder';
-import { generateMascotFromAudio } from '../api/ai';
+import { generateMascotFromAudio, getLatestMascot } from '../api/ai'; // 👈 新增导入
 import luckImg from '../assets/lucky.jpg';
 import FloatingBubble from '../components/FloatingBubble';
 import HotMascotSlider from "../components/HotMascotSlider";
@@ -9,8 +9,30 @@ import HotMascotSlider from "../components/HotMascotSlider";
 export default function Voice() {
   const { recording, seconds, start, stop } = useRecorder();
   const [generating, setGenerating] = useState(false);
-  const [mascot, setMascot] = useState(null);
+  const [mascot, setMascot] = useState(null); // 初始为 null
   const [audioUrl, setAudioUrl] = useState(null);
+
+  // ✅ 【新增】组件加载时获取最新吉祥物
+  useEffect(() => {
+    const fetchLatest = async () => {
+      try {
+        const latest = await getLatestMascot();
+        if (latest?.success && latest.mascot) {
+          setMascot(latest.mascot);
+        }
+      } catch (err) {
+        console.warn('未能获取最新吉祥物:', err.message);
+        // 可选：不报错，保持默认图
+      }
+    };
+    fetchLatest();
+  }, []);
+
+  const triggerNewMascotEvent = (newMascot) => {
+    const event = new CustomEvent('newMascotGenerated', { detail: newMascot });
+    window.dispatchEvent(event);
+    console.log('新吉祥物已生成并触发事件:', newMascot);
+  };
 
   async function handleStart() {
     try {
@@ -25,17 +47,25 @@ export default function Voice() {
     if (blob) {
       setAudioUrl(URL.createObjectURL(blob));
       setGenerating(true);
-      const res = await generateMascotFromAudio(blob);
-      if (res?.success) {
-        setMascot(res.mascot);
+      try {
+        const res = await generateMascotFromAudio(blob);
+        if (res?.success) {
+          setMascot(res.mascot); // 更新状态
+          triggerNewMascotEvent(res.mascot);
+        } else {
+          alert('生成失败：' + (res?.error || '未知错误'));
+        }
+      } catch (err) {
+        console.error('吉祥物生成失败:', err);
+        alert('生成过程中出现错误，请重试');
+      } finally {
+        setGenerating(false);
       }
-      setGenerating(false);
     }
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 2 }}>
-      {/* 主卡片 - 完全保留你现在的精美样式 */}
+    <Container maxWidth="lg" sx={{ py: 2, mt: 8 }}>
       <Paper
         className="card"
         sx={{
@@ -49,7 +79,6 @@ export default function Voice() {
           overflow: 'hidden',
         }}
       >
-        {/* ✅ 关键修改：FloatingBubble 作为直接子元素，但绝对定位居中 */}
         <Box
           sx={{
             position: 'absolute',
@@ -67,10 +96,9 @@ export default function Voice() {
           <FloatingBubble count={30} />
         </Box>
 
-        {/* 内容区域：zIndex > 0，确保在泡泡上方 */}
         <Box sx={{ position: 'relative', zIndex: 1 }}>
           <Grid container spacing={4}>
-            {/* 左侧：录音区 —— 使用 size={6}，参考旧布局 */}
+            {/* 左侧：录音区 */}
             <Grid size={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
               <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
                 录制你的声音
@@ -117,7 +145,7 @@ export default function Voice() {
               </Typography>
             </Grid>
 
-            {/* 右侧：吉祥物展示区 —— 同样使用 size={6} */}
+            {/* 右侧：吉祥物展示区 */}
             <Grid size={6} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
               <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>
                 你的吉祥物

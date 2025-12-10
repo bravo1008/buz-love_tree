@@ -12,12 +12,15 @@ export default function HotMascotSlider() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // 获取所有吉祥物并按点赞数排序[3](@ref)
   const fetchMascots = async () => {
     try {
       const res = await fetch("/api/mascot");
       const data = await res.json();
       if (data.success) {
-        setMascots(data.mascots);
+        // 按点赞数降序排序[3](@ref)
+        const sortedMascots = data.mascots.sort((a, b) => b.likes - a.likes);
+        setMascots(sortedMascots);
       } else {
         setError("加载失败");
       }
@@ -29,6 +32,24 @@ export default function HotMascotSlider() {
     }
   };
 
+  // 添加新吉祥物到排行榜
+  const addNewMascot = (newMascot) => {
+    setMascots(prev => {
+      // 检查是否已存在相同ID的吉祥物
+      const exists = prev.some(m => m._id === newMascot._id);
+      if (exists) {
+        // 如果已存在，更新该吉祥物
+        return prev.map(m => 
+          m._id === newMascot._id ? newMascot : m
+        ).sort((a, b) => b.likes - a.likes);
+      } else {
+        // 如果不存在，添加到列表并重新排序
+        const updatedList = [...prev, newMascot];
+        return updatedList.sort((a, b) => b.likes - a.likes);
+      }
+    });
+  };
+
   const handleLike = async (id) => {
     try {
       const res = await fetch(`/api/mascot/${id}/like`, {
@@ -37,6 +58,7 @@ export default function HotMascotSlider() {
       });
       const data = await res.json();
       if (data.success) {
+        // 更新本地状态并重新排序[3](@ref)
         setMascots((prev) =>
           prev.map((m) =>
             m._id === id ? { ...m, likes: data.likes } : m
@@ -49,6 +71,24 @@ export default function HotMascotSlider() {
     }
   };
 
+  // 监听新吉祥物生成事件
+  useEffect(() => {
+    const handleNewMascot = (event) => {
+      const newMascot = event.detail;
+      if (newMascot && newMascot._id) {
+        addNewMascot(newMascot);
+      }
+    };
+
+    // 添加自定义事件监听器
+    window.addEventListener('newMascotGenerated', handleNewMascot);
+
+    return () => {
+      window.removeEventListener('newMascotGenerated', handleNewMascot);
+    };
+  }, []);
+
+  // 初始加载数据[6](@ref)
   useEffect(() => {
     fetchMascots();
   }, []);
@@ -108,7 +148,7 @@ export default function HotMascotSlider() {
         <AnimatedBorder />
         {mascots.length === 0 ? (
           <Box sx={{ py: 4, textAlign: "center", color: "#999" }}>
-            暂无吉祥物
+            暂无吉祥物，快去生成一个吧！
           </Box>
         ) : (
           <Box
@@ -167,6 +207,27 @@ export default function HotMascotSlider() {
                   </Box>
                 )}
 
+                {/* 排名编号 */}
+                <Typography
+                  variant="caption"
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    left: 8,
+                    bgcolor: 'rgba(0,0,0,0.1)',
+                    color: '#666',
+                    borderRadius: '50%',
+                    width: 20,
+                    height: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  #{index + 1}
+                </Typography>
+
                 <Box
                   component="img"
                   src={m.imageUrl}
@@ -180,15 +241,6 @@ export default function HotMascotSlider() {
                     border: '2px solid white',
                   }}
                 />
-
-                <Typography
-                  variant="subtitle2"
-                  fontWeight="medium"
-                  sx={{ mb: 1, color: 'text.primary' }}
-                >
-                  {m.name}
-                </Typography>
-
                 <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 0.5 }}>
                   <IconButton
                     size="small"

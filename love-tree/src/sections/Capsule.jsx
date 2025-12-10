@@ -1,16 +1,20 @@
-// src/pages/LetterApp.jsx
+// src/pages/LetterApp.jsx 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Toaster, toast } from 'sonner';
-import Box from '@mui/material/Box';
+import {
+  Typography,
+  Box,
+} from "@mui/material";
 
 import EnvelopeDisplay from '../components/EnvelopeDisplay';
 import LetterModal from '../components/LetterModal';
 import LetterWriter from '../components/LetterWriter';
+import SwipeHintButton from "../components/SwipeHintButton"; 
 
 const API_URL = "http://localhost:5000/api/letters";
 
-const LetterApp = () => {
+const LetterApp = ({ onSwipeRight }) => {
   const [letters, setLetters] = useState([]);
   const [selectedLetter, setSelectedLetter] = useState(null);
 
@@ -46,15 +50,25 @@ const LetterApp = () => {
     <Box
       sx={{
         minHeight: '100vh',
+        width: '100%',
         position: 'relative',
         background: 'transparent',
-        width: '100%',
         px: { xs: 2, md: 4 },
-        py: { xs: 2, md: 6 },
+        py: { xs: 2, md: 4 },
+        display: 'flex',
+        flexDirection: 'column',
+        overflowY: 'auto',   // ✅ 允许页面整体向下滚动
+        boxSizing: 'border-box',
+        mt:7
       }}
     >
-      {/* 背景装饰 */}
-      <Box sx={{ position: 'absolute', inset: 0, pointerEvents: 'none', overflow: 'hidden' }}>
+      {/* 背景动效 */}
+      <Box sx={{ 
+        position: 'absolute',
+        inset: 0,
+        pointerEvents: 'none',
+        height: '100%',      // ✅ 避免背景层撑开页面导致无法滚动
+      }}>
         <motion.div
           style={{
             position: 'absolute',
@@ -62,7 +76,7 @@ const LetterApp = () => {
             left: '5%',
             width: '16rem',
             height: '16rem',
-            background: 'rgba(79, 218, 160, 0.15)', // emerald-400-ish
+            background: 'rgba(79, 218, 160, 0.15)',
             borderRadius: '9999px',
             filter: 'blur(3rem)',
           }}
@@ -76,7 +90,7 @@ const LetterApp = () => {
             right: '10%',
             width: '20rem',
             height: '20rem',
-            background: 'rgba(56, 189, 248, 0.12)', // cyan-400-ish
+            background: 'rgba(56, 189, 248, 0.12)',
             borderRadius: '9999px',
             filter: 'blur(3rem)',
           }}
@@ -85,88 +99,79 @@ const LetterApp = () => {
         />
       </Box>
 
-      {/* 标题 —— 使用参考代码的样式 */}
-      <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 10, mb: 4 }}>
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          style={{
-            fontSize: '2.5rem',
-            fontWeight: 700,
-            margin: 0,
-            background: 'linear-gradient(to right, #0d9488, #0ea5e9, #0284c7)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            backgroundClip: 'text',
-          }}
-        >
-          <i className="fa-solid fa-envelope-open-text" style={{ marginRight: 8 }}></i>
-          时光信笺
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.12 }}
-          style={{ color: '#0f766e', marginTop: '0.5rem' }}
-        >
-          写下你的心情，封存美好回忆，让每一封信都成为时光的见证
-        </motion.p>
+      {/* 标题 */}
+      <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 20, mt:5 }}>
+        <Typography
+              variant="h4"
+              align="center"
+              sx={{
+                fontSize: { xs: '2.25rem', md: '3rem' }, // text-4xl / text-5xl
+                fontWeight: 'bold',
+                mb: 2,
+                background: 'linear-gradient(to right, #1e40af, #1d4d4b)', // primary, accent, secondary
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                color: 'transparent',
+              }}
+            >
+              时光信笺
+            </Typography>
+      <Typography align="center" color="text.secondary" sx={{ mb: 3 }}>
+        写下你的心情，封存美好回忆，让每一封信都成为时光的见证
+      </Typography>
       </Box>
 
-      {/* 布局：左右两列 */}
+      {/* 主内容区 */}
       <Box
         sx={{
           display: 'flex',
           flexDirection: { xs: 'column', md: 'row' },
           gap: 2,
-          alignItems: 'stretch',
           width: '100%',
           justifyContent: 'center',
+          position: 'relative',
+          zIndex: 10,
         }}
       >
-        {/* 展柜（左侧） */}
+        {/* 展柜 */}
         <Box
           sx={{
             flex: { xs: '0 0 100%', md: '0 0 620px' },
             maxWidth: { xs: '100%', md: '620px' },
-            width: { xs: '100%', md: '620px' },
-            boxSizing: 'border-box',
             background: 'rgba(255,255,255,0.95)',
             borderRadius: '12px',
-            border: '2px solid rgba(16, 185, 129, 0.2)', // emerald-500/20
-            boxShadow: '0 8px 18px rgba(2,6,23,0.06)',
-            height: { xs: 'auto', md: 'calc(100vh - 240px)' },
-            overflow: 'hidden',
+            border: '2px solid rgba(16, 185, 129, 0.2)',
             p: 1,
+            boxShadow: '0 8px 18px rgba(2,6,23,0.06)',
           }}
         >
-          <Box sx={{ height: '100%', overflowY: 'auto', pr: 1 }}>
-            <EnvelopeDisplay letters={letters} onSelectLetter={setSelectedLetter} />
+          <Box sx={{ maxHeight: '600px', overflowY: 'auto', pr: 1 }}>
+            <EnvelopeDisplay 
+              letters={letters} 
+              onSelectLetter={setSelectedLetter} 
+            />
           </Box>
         </Box>
 
-        {/* 写信区域（右侧） */}
+        {/* 写信 */}
         <Box
           sx={{
-            flex: '1 1 0%',
+            flex: 1,
             minWidth: { xs: '100%', md: '400px' },
-            maxWidth: { xs: '100%', md: 'calc(100% - 540px)' },
-            boxSizing: 'border-box',
             display: 'flex',
             flexDirection: 'column',
-            height: { xs: '250px', md: 'calc(100vh - 240px)' },
-            px: { xs: 1.5, md: 2 },
+            minHeight: { xs: '250px', md: '300px' },
           }}
         >
-          <Box sx={{ width: '100%', flex: 1 }}>
-            <LetterWriter onSealLetter={handleSealLetter} />
-          </Box>
+          <LetterWriter onSealLetter={handleSealLetter} />
         </Box>
       </Box>
 
       <LetterModal letter={selectedLetter} onClose={() => setSelectedLetter(null)} />
       <Toaster position="top-right" />
+
+      {onSwipeRight && <SwipeHintButton onClick={onSwipeRight} />} 
     </Box>
   );
 };

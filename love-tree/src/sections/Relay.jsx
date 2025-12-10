@@ -1,4 +1,4 @@
-// FILE: src/sections/Relay.jsx
+// src/sections/Relay.jsx
 import React, { useState, useEffect } from "react";
 import {
   Typography,
@@ -19,6 +19,7 @@ import {
 import { styled, keyframes } from "@mui/material/styles";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import PersonIcon from "@mui/icons-material/Person";
+import SwipeHintButton from "../components/SwipeHintButton"; 
 import axios from "axios";
 
 // ==================== 动画 ====================
@@ -27,19 +28,25 @@ const marquee = keyframes`
   100% { transform: translateX(-50%); }
 `;
 
+// ✅ 限制宽度，防止撑开滑动页
 const MarqueeContainer = styled("div")({
   overflow: "hidden",
   position: "relative",
   padding: "40px 0",
+  width: "100vw",
+  maxWidth: "100%",
+  boxSizing: "border-box",
+  minHeight: "160px", // 👈 确保内容有足够空间
 });
 
 const MarqueeContent = styled("div")({
   display: "inline-flex",
   whiteSpace: "nowrap",
   animation: `${marquee} 20s linear infinite`,
+  minWidth: "200%",
 });
 
-// 保持你的卡片样式不动
+// ✅ 卡片样式优化：height: auto，自动适应内容
 const StyledPaper = styled(Paper)(({ theme }) => ({
   background: "rgba(255, 255, 255, 0.95)",
   backdropFilter: "blur(12px)",
@@ -47,7 +54,6 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   border: "1px solid rgba(255, 255, 255, 0.25)",
   padding: theme.spacing(3),
   width: 260,
-  height: 280,
   margin: "0 26px",
   transform: `rotate(${(Math.random() * 8 - 4).toFixed(2)}deg)`,
   transition: "transform .35s ease, box-shadow .35s ease",
@@ -65,11 +71,10 @@ const randomColor = () => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
-export default function Relay() {
+export default function Relay({ onSwipeRight }) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
 
-  // ==================== 新增表单字段 ====================
   const [form, setForm] = useState({
     surname: "",
     gender: "先生",
@@ -78,7 +83,6 @@ export default function Relay() {
     text: "",
   });
 
-  // ==================== 从后端读取发布内容 ====================
   const loadMessages = async () => {
     try {
       const res = await axios.get("/api/relay");
@@ -96,7 +100,6 @@ export default function Relay() {
     setForm({ ...form, [key]: val });
   };
 
-  // ==================== 发布寄语到后端 ====================
   const publish = async () => {
     const newMsg = {
       name: form.surname + form.gender,
@@ -112,7 +115,6 @@ export default function Relay() {
     try {
       await axios.post("/api/relay", newMsg);
       loadMessages();
-      // ✅ 成功后清空表单
       setForm({
         surname: "",
         gender: "先生",
@@ -128,32 +130,47 @@ export default function Relay() {
   };
 
   return (
-    <Box sx={{ textAlign: "center" }}>
+    <Box
+      sx={{
+        width: "100%",
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        px: 2,
+        py: 4,
+        overflow: "hidden", // 防止子元素溢出
+      }}
+    >
+      {/* ✅ 标题：确保显示且居中 */}
       <Typography
-              variant="h4"
-              align="center"
-              sx={{
-                fontSize: { xs: '2.25rem', md: '3rem' }, // text-4xl / text-5xl
-                fontWeight: 'bold',
-                mb: 2,
-                background: 'linear-gradient(to right, #1e40af, #1d4d4b)', // primary, accent, secondary
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                color: 'transparent',
-              }}
-            >
-              温暖寄语墙
-            </Typography>
-      <Typography sx={{ opacity: 0.7 }}>
+        variant="h4"
+        align="center"
+        sx={{
+          fontSize: { xs: '2.25rem', md: '3rem' },
+          fontWeight: 'bold',
+          mb: 2,
+          background: 'linear-gradient(to right, #1e40af, #1d4d4b)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          color: 'transparent',
+          lineHeight: 1.2,
+          mt:-3
+        }}
+      >
+        温暖寄语墙
+      </Typography>
+
+      <Typography
+        align="center" color="text.secondary" sx={{ mb: 3 }}
+      >
         已康复病友写下寄语，生成抗癌卡片送给新的病友
       </Typography>
 
-      {/* =========🔴 只有 items.length > 0 时才显示卡片走马灯 ========= */}
-      {/* ================== 走马灯区域 ================== */}
-
+      {/* 走马灯区域 */}
       {items.length === 0 ? (
-        // 当没有任何寄语时显示提示文字
         <Box
           sx={{
             py: 6,
@@ -161,19 +178,17 @@ export default function Relay() {
             fontSize: 18,
             fontStyle: "italic",
             opacity: 0.8,
+            textAlign: "center",
           }}
         >
           暂无寄语，欢迎你成为第一位留言者！
         </Box>
       ) : (
-        // 有寄语时才显示滑动走马灯
         <MarqueeContainer>
           <MarqueeContent>
             {[...items, ...items].map((it, idx) => (
-              <StyledPaper key={idx}>
-                {/* 头像 + 右侧信息 */}
+              <StyledPaper key={`${it.date}-${idx}`}>
                 <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, mb: 1.5 }}>
-                  {/* 头像 */}
                   <Box
                     sx={{
                       width: 56,
@@ -189,28 +204,22 @@ export default function Relay() {
                   >
                     <PersonIcon />
                   </Box>
-
-                  {/* 右侧：用户名 + 身份/疾病 */}
                   <Box sx={{ textAlign: "left", flexGrow: 1 }}>
-                    {/* 用户名 */}
                     <Typography variant="h6" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
                       {it.name}
                     </Typography>
-
-                    {/* 身份 | 疾病 */}
                     <Typography sx={{ color: "#666", fontSize: 13, mt: 0.5 }}>
                       {it.identity} | {it.disease}
                     </Typography>
                   </Box>
                 </Box>
 
-                {/* 寄语内容：垂直滚动 */}
                 <Box
                   sx={{
                     flex: 1,
                     fontStyle: "italic",
-                    wordBreak: "break-word",     // 更强的断词（比 wordWrap 更可靠）
-                    whiteSpace: "normal",        // 显式恢复换行！
+                    wordBreak: "break-word",
+                    whiteSpace: "normal",
                     overflowY: "auto",
                     maxHeight: 100,
                     pr: 1,
@@ -227,7 +236,6 @@ export default function Relay() {
                   “{it.text}”
                 </Box>
 
-                {/* 日期 + 喜欢 */}
                 <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1.5 }}>
                   <Typography sx={{ fontSize: 13, color: "#555" }}>
                     {it.date}
@@ -239,18 +247,24 @@ export default function Relay() {
         </MarqueeContainer>
       )}
 
-
       {/* 发布按钮 */}
       <Button
         variant="contained"
         color="primary"
-        sx={{ mt: 2 }}
+        sx={{
+          mt: 3,
+          mb: 4,
+          px: 4,
+          py: 1.5,
+          fontSize: 14,
+          borderRadius: 20,
+        }}
         onClick={() => setOpen(true)}
       >
         写下你的寄语
       </Button>
 
-      {/* ============= 弹窗部分保持不动 ============= */}
+      {/* 弹窗 */}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>发布你的寄语</DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
@@ -261,7 +275,6 @@ export default function Relay() {
             value={form.surname}
             onChange={(e) => handleChange("surname", e.target.value)}
           />
-
           <Typography sx={{ fontSize: 14, mb: 1 }}>称谓</Typography>
           <RadioGroup
             row
@@ -271,7 +284,6 @@ export default function Relay() {
             <FormControlLabel value="先生" control={<Radio />} label="先生" />
             <FormControlLabel value="女士" control={<Radio />} label="女士" />
           </RadioGroup>
-
           <TextField
             select
             fullWidth
@@ -284,7 +296,6 @@ export default function Relay() {
             <MenuItem value="陪护者">陪护者</MenuItem>
             <MenuItem value="家属">家属</MenuItem>
           </TextField>
-
           <TextField
             fullWidth
             label="疾病（例如：乳腺癌）"
@@ -292,7 +303,6 @@ export default function Relay() {
             value={form.disease}
             onChange={(e) => handleChange("disease", e.target.value)}
           />
-
           <TextField
             fullWidth
             multiline
@@ -302,7 +312,6 @@ export default function Relay() {
             onChange={(e) => handleChange("text", e.target.value)}
           />
         </DialogContent>
-
         <DialogActions>
           <Button onClick={() => setOpen(false)}>取消</Button>
           <Button variant="contained" onClick={publish}>
@@ -310,6 +319,8 @@ export default function Relay() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {onSwipeRight && <SwipeHintButton onClick={onSwipeRight} />} 
     </Box>
   );
 }
