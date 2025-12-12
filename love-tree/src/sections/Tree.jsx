@@ -12,7 +12,7 @@ import {
   IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import treeVideo from "../assets/love2.webm"; // WebM 格式
+import treeVideo from "../assets/love.webm"; // WebM 格式
 import Voice from "./Voice";
 import SwipeHintButton from "../components/SwipeHintButton";
 
