@@ -12,27 +12,24 @@ import {
   IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import treeVideo from "../assets/love.webm"; // 👈 改为 .webm
+import treeVideo from "../assets/love2.webm"; // WebM 格式
 import Voice from "./Voice";
 import SwipeHintButton from "../components/SwipeHintButton";
 
 export default function Tree({ onSwipeRight }) {
   const [openGenerate, setOpenGenerate] = useState(false);
-  const [openRanking, setOpenRanking] = useState(false);
   const [hangingMascots, setHangingMascots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [latestMascot, setLatestMascot] = useState(null);
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // 新增：控制图片预览弹窗的状态
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [previewTitle, setPreviewTitle] = useState("");
 
-  // 使用ref来存储是否需要刷新
   const needsRefreshRef = useRef(false);
 
-  // 六个固定位置坐标（相对于Tree容器的百分比位置）- 可调整
+  // 八个固定位置坐标
   const hangingPositions = [
     { top: "34%", left: "42%" },
     { top: "34%", left: "62%" },
@@ -44,16 +41,14 @@ export default function Tree({ onSwipeRight }) {
     { top: "43%", left: "76%" },
   ];
 
-  // 获取排行榜前七名
   const fetchTopMascots = async () => {
     try {
       const res = await fetch("https://buz-love-tree.onrender.com/api/mascot");
       const data = await res.json();
       if (data.success) {
-        const topMascots = data.mascots
+        return data.mascots
           .sort((a, b) => b.likes - a.likes)
           .slice(0, 7);
-        return topMascots;
       }
       return [];
     } catch (err) {
@@ -62,7 +57,6 @@ export default function Tree({ onSwipeRight }) {
     }
   };
 
-  // 获取最新吉祥物
   const fetchLatestMascot = async () => {
     try {
       const res = await fetch("https://buz-love-tree.onrender.com/api/mascot/latest");
@@ -77,7 +71,6 @@ export default function Tree({ onSwipeRight }) {
     }
   };
 
-  // 生成唯一key
   const generateUniqueKey = (mascot, index) => {
     if (mascot._id) {
       return `${mascot._id}-${mascot.isLatest ? 'latest' : 'ranked'}-${index}`;
@@ -87,7 +80,6 @@ export default function Tree({ onSwipeRight }) {
     return `fallback-${index}-${Date.now()}`;
   };
 
-  // 更新悬挂的吉祥物
   const updateHangingMascots = async () => {
     setLoading(true);
     try {
@@ -136,7 +128,6 @@ export default function Tree({ onSwipeRight }) {
         }
       }
 
-      // 第8个位置（索引7）放最新吉祥物
       if (latest) {
         mascotsToHang.push({
           ...latest,
@@ -180,12 +171,10 @@ export default function Tree({ onSwipeRight }) {
     }
   };
 
-  // 初始加载
   useEffect(() => {
     updateHangingMascots();
   }, []);
 
-  // 监听新吉祥物生成事件
   useEffect(() => {
     const handleNewMascot = (event) => {
       const newMascot = event.detail;
@@ -208,7 +197,6 @@ export default function Tree({ onSwipeRight }) {
     };
   }, []);
 
-  // 监听录音按钮状态
   useEffect(() => {
     if (openGenerate) {
       needsRefreshRef.current = true;
@@ -218,7 +206,6 @@ export default function Tree({ onSwipeRight }) {
     }
   }, [openGenerate]);
 
-  // 处理吉祥物点击
   const handleMascotClick = (mascot) => {
     if (mascot.isPlaceholder || !mascot.imageUrl) return;
     setPreviewImage(mascot.imageUrl);
@@ -249,40 +236,38 @@ export default function Tree({ onSwipeRight }) {
 
   return (
     <>
-      {/* 摇摆动画样式 */}
       <style>{swingKeyframes}</style>
 
-      {/* ====== 视频背景层 ====== */}
-      <Box
-        component="video"
-        autoPlay
-        muted
-        loop
-        playsInline
-        src={treeVideo}
-        sx={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: "100vw",
-          height: "100vh",
-          objectFit: "cover",
-          zIndex: -1,
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* ====== Tree 内容层（无背景图） ====== */}
+      {/* ====== Tree 主容器（相对定位，建立本地背景上下文） ====== */}
       <Box
         sx={{
           width: "100vw",
           minHeight: "92vh",
-          position: "relative",
-          zIndex: 0,
+          position: "relative", // 👈 关键：建立定位上下文
           mt: 2,
           overflow: "hidden",
         }}
       >
+        {/* ====== 局部背景视频（仅在此组件内显示） ====== */}
+        <Box
+          component="video"
+          autoPlay
+          muted
+          loop
+          playsInline
+          src={treeVideo}
+          sx={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            zIndex: -1, // 在内容下方
+            pointerEvents: "none", // 不拦截点击
+          }}
+        />
+
         {/* 悬挂的吉祥物 */}
         {!loading &&
           hangingMascots.map((mascot, index) => {
