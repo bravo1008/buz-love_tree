@@ -292,27 +292,29 @@ router.post("/from-audio", upload.single("audio"), async (req, res) => {
     return res.status(400).json({ success: false, error: "未收到音频文件" });
   }
 
+  const deviceId = req.headers["x-device-id"];
+  if (!deviceId) {
+    return res.status(400).json({ success: false, error: "缺少设备标识 x-device-id" });
+  }
+
   try {
     const buffer = req.file.buffer;
     
-    // 检查音频长度（百度限制60秒）[1](@ref)
-    if (buffer.length > 60 * 16000 * 2) { // 粗略估算：60秒 * 16000采样率 * 2字节
+    if (buffer.length > 60 * 16000 * 2) {
       return res.status(400).json({ 
         success: false, 
         error: "音频过长，请限制在60秒以内" 
       });
     }
 
-    // ① 音频 → 文本 (现在调用的是百度API)
     const text = await speechToText(buffer);
-
-    // ② 文本 → 吉祥物图片
     const imageUrl = await generateMascotImage(text);
 
-    // ③ 写入数据库
+    // 👇 保存 deviceId
     const mascot = await Mascot.create({
       textPrompt: text,
       imageUrl,
+      deviceId, // 👈 关键：绑定设备
       createdAt: new Date()
     });
 
@@ -393,19 +395,44 @@ router.get("/", async (req, res) => {
 });
 
 // =======================
-// ④ 获取最新吉祥物（按时间排序）
+// 获取当前设备的最新吉祥物（若无则返回占位图）
 // =======================
 router.get("/latest", async (req, res) => {
+  const deviceId = req.headers["x-device-id"];
+  if (!deviceId) {
+    return res.status(400).json({ 
+      success: false, 
+      error: "缺少设备标识 x-device-id",
+      mascot: { imageUrl: "/lucky.jpg" } // 可选：即使没 deviceId 也给占位图
+    });
+  }
+
   try {
-    const latest = await Mascot.findOne().sort({ createdAt: -1 });
+    const latest = await Mascot.findOne({ deviceId }).sort({ createdAt: -1 });
+
     if (latest) {
       res.json({ success: true, mascot: latest });
     } else {
-      res.json({ success: false, error: "暂无吉祥物" });
+      // 👇 返回占位图
+      res.json({
+        success: true,
+        mascot: {
+          _id: null,
+          textPrompt: "暂无语音生成记录",
+          imageUrl: "/lucky.jpg", // 确保前端能访问这个路径
+          likes: 0,
+          deviceId,
+          createdAt: null
+        }
+      });
     }
   } catch (err) {
-    console.error("获取最新吉祥物失败:", err);
-    res.status(500).json({ success: false, error: "服务器错误" });
+    console.error("获取设备最新吉祥物失败:", err);
+    res.status(500).json({ 
+      success: false, 
+      error: "服务器错误",
+      mascot: { imageUrl: "/lucky.jpg" } // 容错兜底
+    });
   }
 });
 
