@@ -12,37 +12,60 @@ import LetterModal from '../components/LetterModal';
 import LetterWriter from '../components/LetterWriter';
 import SwipeHintButton from "../components/SwipeHintButton"; 
 
+// 👇 引入 deviceId 工具函数
+import { getDeviceId } from '../utils/deviceId';
+
 const API_URL = "https://buz-love-tree.onrender.com/api/letters";
 
 const LetterApp = ({ onSwipeRight }) => {
   const [letters, setLetters] = useState([]);
   const [selectedLetter, setSelectedLetter] = useState(null);
 
+  // 👇 获取当前设备 ID（每次请求都调用，确保存在）
+  const deviceId = getDeviceId();
+
   useEffect(() => {
-    fetch(API_URL)
-      .then((res) => res.json())
-      .then((data) => setLetters(Array.isArray(data.letters) ? data.letters : []))
-      .catch(() => toast.error("无法连接后端"));
-  }, []);
+    // 👇 带上 x-device-id 请求头
+    fetch(API_URL, {
+      headers: {
+        "x-device-id": deviceId,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("请求失败");
+        return res.json();
+      })
+      .then((data) => {
+        setLetters(Array.isArray(data.letters) ? data.letters : []);
+      })
+      .catch((err) => {
+        console.error("获取信件失败:", err);
+        toast.error("无法加载你的信件");
+      });
+  }, [deviceId]); // 👈 依赖 deviceId，虽然它不变，但语义清晰
 
   const handleSealLetter = async (newLetter) => {
     try {
       const res = await fetch(API_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "x-device-id": deviceId, // 👈 关键：绑定设备 ID
+        },
         body: JSON.stringify(newLetter),
       });
 
-      const saved = await res.json();
+      const result = await res.json();
 
-      if (res.ok) {
-        setLetters((prev) => [saved.letter, ...prev]);
+      if (res.ok && result.letter) {
+        setLetters((prev) => [result.letter, ...prev]);
         toast.success("信件已成功上传并存入展柜");
       } else {
-        toast.error("上传失败");
+        toast.error(result.message || "上传失败");
       }
     } catch (err) {
-      toast.error("后端连接失败");
+      console.error("上传信件出错:", err);
+      toast.error("网络错误，请重试");
     }
   };
 
@@ -57,7 +80,7 @@ const LetterApp = ({ onSwipeRight }) => {
         py: { xs: 2, md: 4 },
         display: 'flex',
         flexDirection: 'column',
-        overflowY: 'auto',   // ✅ 允许页面整体向下滚动
+        overflowY: 'auto',
         boxSizing: 'border-box',
         mt:7
       }}
@@ -67,7 +90,7 @@ const LetterApp = ({ onSwipeRight }) => {
         position: 'absolute',
         inset: 0,
         pointerEvents: 'none',
-        height: '100%',      // ✅ 避免背景层撑开页面导致无法滚动
+        height: '100%',
       }}>
         <motion.div
           style={{
@@ -105,10 +128,10 @@ const LetterApp = ({ onSwipeRight }) => {
               variant="h4"
               align="center"
               sx={{
-                fontSize: { xs: '2.25rem', md: '3rem' }, // text-4xl / text-5xl
+                fontSize: { xs: '2.25rem', md: '3rem' },
                 fontWeight: 'bold',
                 mb: 2,
-                background: 'linear-gradient(to right, #1e40af, #1d4d4b)', // primary, accent, secondary
+                background: 'linear-gradient(to right, #1e40af, #1d4d4b)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
