@@ -419,7 +419,6 @@ router.get("/latest", async (req, res) => {
         mascot: {
           _id: null,
           textPrompt: "暂无语音生成记录",
-          imageUrl: "/lucky.jpg", // 确保前端能访问这个路径
           likes: 0,
           deviceId,
           createdAt: null
