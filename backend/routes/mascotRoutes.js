@@ -133,6 +133,9 @@ async function speechToText(buffer) {
 // =======================
 // ② 文本 → 吉祥物图片（保持不变，只返回临时链接）
 // =======================
+// =======================
+// ② 文本 → 吉祥物图片（带尺寸重试）
+// =======================
 async function generateMascotImage(text) {
   const apiKey = process.env.TYQW_API2_KEY;
   const baseUrl = (process.env.TYQW_BASE2_URL || "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation").trim();
@@ -151,37 +154,69 @@ async function generateMascotImage(text) {
 3. 像平面贴纸一样扁平，或者类似于简笔画
 4. 颜色柔和，线条简洁`;
 
-  try {
-    const resp = await axios.post(
-      baseUrl,
-      {
-        model: "qwen-image-plus",
-        input: {
-          messages: [{ role: "user", content: [{ text: prompt }] }]
-        },
-        parameters: {
-          size: "1024*1024",
-          prompt_extend: true,
-          watermark: true,
-          style: "<flat illustration>"
-        }
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json"
-        },
-        timeout: 90000
-      }
-    );
+  // DashScope 支持的尺寸列表（qwen-image-plus）
+  const supportedSizes = [
+    "1328*1328",   // 正方形，最接近 1024
+    "1472*1140",
+    "1140*1472",
+    "1664*928",
+    "928*1664"
+  ];
 
-    const choice = resp.data?.output?.choices?.[0];
-    const imageField = choice?.message?.content?.find?.((x) => x.image);
-    return imageField?.image || "";
-  } catch (err) {
-    console.error("❌ 吉祥物图生成失败：", err.response?.data || err.message);
-    throw new Error("吉祥物生成失败");
+  // 尝试多个尺寸，直到成功
+  for (const size of supportedSizes) {
+    try {
+      console.log(`🖼️ 尝试生成图片，尺寸: ${size}`);
+      const resp = await axios.post(
+        baseUrl,
+        {
+          model: "qwen-image-plus",
+          input: {
+            messages: [{ role: "user", content: [{ text: prompt }] }]
+          },
+          parameters: {
+            size: size,
+            prompt_extend: true,
+            watermark: true,
+            style: "<flat illustration>"
+          }
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json"
+          },
+          timeout: 90000
+        }
+      );
+
+      const choice = resp.data?.output?.choices?.[0];
+      const imageField = choice?.message?.content?.find?.((x) => x.image);
+      const imageUrl = imageField?.image;
+
+      if (imageUrl) {
+        console.log(`✅ 图片生成成功: ${imageUrl.substring(0, 60)}...`);
+        return imageUrl;
+      } else {
+        console.warn("⚠️ 响应中无图片字段，尝试下一个尺寸");
+      }
+    } catch (err) {
+      const errMsg = err.response?.data?.message || err.message;
+      console.error(`❌ 尺寸 ${size} 失败:`, errMsg);
+
+      // 如果不是尺寸问题，直接抛出
+      if (!errMsg?.includes?.('size') && !errMsg?.includes?.('InvalidParameter')) {
+        throw new Error(`吉祥物生成失败: ${errMsg}`);
+      }
+
+      // 如果是最后一个尺寸也失败，抛出错误
+      if (size === supportedSizes[supportedSizes.length - 1]) {
+        throw new Error(`所有尺寸均失败，最后错误: ${errMsg}`);
+      }
+    }
   }
+
+  return ""; // 理论上不会走到这里
 }
 
 // =======================
