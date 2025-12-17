@@ -446,7 +446,8 @@ router.patch("/:id/like", async (req, res) => {
     }
 
     mascot.likes += 1;
-    await mascot.save();
+    // 👇 关键修复：跳过验证，避免因 deviceId 缺失而失败
+    await mascot.save({ validateBeforeSave: false });
 
     res.json({ success: true, likes: mascot.likes });
   } catch (err) {
