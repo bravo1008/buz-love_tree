@@ -15,6 +15,10 @@ import CloseIcon from "@mui/icons-material/Close";
 import treeVideo from "../assets/love.webm"; // WebM 格式
 import Voice from "./Voice";
 import SwipeHintButton from "../components/SwipeHintButton";
+import luckImg from '../assets/lucky.jpg';
+
+// ✅ 新增导入
+import { getLatestMascot, getTopMascots } from '../api/ai';
 
 export default function Tree({ onSwipeRight }) {
   const [openGenerate, setOpenGenerate] = useState(false);
@@ -41,35 +45,7 @@ export default function Tree({ onSwipeRight }) {
     { top: "43%", left: "76%" },
   ];
 
-  const fetchTopMascots = async () => {
-    try {
-      const res = await fetch("https://buz-love-tree.onrender.com/api/mascot");
-      const data = await res.json();
-      if (data.success) {
-        return data.mascots
-          .sort((a, b) => b.likes - a.likes)
-          .slice(0, 7);
-      }
-      return [];
-    } catch (err) {
-      console.error("获取排行榜失败:", err);
-      return [];
-    }
-  };
-
-  const fetchLatestMascot = async () => {
-    try {
-      const res = await fetch("https://buz-love-tree.onrender.com/api/mascot/latest");
-      const data = await res.json();
-      if (data.success && data.mascot) {
-        return data.mascot;
-      }
-      return null;
-    } catch (err) {
-      console.error("获取最新吉祥物失败:", err);
-      return null;
-    }
-  };
+  // ❌ 删除了 fetchTopMascots 和 fetchLatestMascot
 
   const generateUniqueKey = (mascot, index) => {
     if (mascot._id) {
@@ -83,12 +59,16 @@ export default function Tree({ onSwipeRight }) {
   const updateHangingMascots = async () => {
     setLoading(true);
     try {
-      const [topMascots, latest] = await Promise.all([
-        fetchTopMascots(),
-        fetchLatestMascot(),
+      // ✅ 使用 ai.js 的封装函数
+      const [topMascots, latestResponse] = await Promise.all([
+        getTopMascots(),
+        getLatestMascot(),
       ]);
 
+      // ✅ 正确解构 latest
+      const latest = latestResponse?.success ? latestResponse.mascot : null;
       setLatestMascot(latest);
+
       const mascotsToHang = [];
 
       for (let i = 0; i < 7; i++) {
@@ -116,7 +96,7 @@ export default function Tree({ onSwipeRight }) {
         } else {
           mascotsToHang.push({
             _id: `placeholder-${i}`,
-            imageUrl: null,
+            imageUrl: null, // 明确设为 null
             isLatest: false,
             position: hangingPositions[i],
             isPlaceholder: true,
@@ -128,7 +108,8 @@ export default function Tree({ onSwipeRight }) {
         }
       }
 
-      if (latest) {
+      if (latest && latest.imageUrl) {
+        // ✅ 只有有 imageUrl 才挂最新
         mascotsToHang.push({
           ...latest,
           isLatest: true,
@@ -243,12 +224,12 @@ export default function Tree({ onSwipeRight }) {
         sx={{
           width: "100vw",
           minHeight: "92vh",
-          position: "relative", // 👈 关键：建立定位上下文
+          position: "relative",
           mt: 2,
           overflow: "hidden",
         }}
       >
-        {/* ====== 局部背景视频（仅在此组件内显示） ====== */}
+        {/* ====== 局部背景视频 ====== */}
         <Box
           component="video"
           autoPlay
@@ -263,8 +244,8 @@ export default function Tree({ onSwipeRight }) {
             width: "100%",
             height: "100%",
             objectFit: "cover",
-            zIndex: -1, // 在内容下方
-            pointerEvents: "none", // 不拦截点击
+            zIndex: -1,
+            pointerEvents: "none",
           }}
         />
 

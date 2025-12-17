@@ -156,7 +156,7 @@ export default function Voice() {
                   <CircularProgress size={60} />
                   <Typography sx={{ mt: 2, color: 'text.secondary' }}>正在生成你的吉祥物…</Typography>
                 </Box>
-              ) : mascot ? (
+              ) : mascot && mascot.imageUrl ? (
                 <>
                   <Box
                     component="img"
