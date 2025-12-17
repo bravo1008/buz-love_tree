@@ -15,6 +15,7 @@ import {
   FormControlLabel,
   Radio,
   MenuItem,
+  Alert,
 } from "@mui/material";
 import { styled, keyframes } from "@mui/material/styles";
 import FavoriteIcon from "@mui/icons-material/Favorite";
@@ -22,13 +23,15 @@ import PersonIcon from "@mui/icons-material/Person";
 import SwipeHintButton from "../components/SwipeHintButton"; 
 import axios from "axios";
 
+// ==================== 配置 ====================
+const API_BASE = "https://buz-love-tree.onrender.com/api";
+
 // ==================== 动画 ====================
 const marquee = keyframes`
   0%   { transform: translateX(0%); }
   100% { transform: translateX(-50%); }
 `;
 
-// ✅ 限制宽度，防止撑开滑动页
 const MarqueeContainer = styled("div")({
   overflow: "hidden",
   position: "relative",
@@ -36,7 +39,7 @@ const MarqueeContainer = styled("div")({
   width: "100vw",
   maxWidth: "100%",
   boxSizing: "border-box",
-  minHeight: "160px", // 👈 确保内容有足够空间
+  minHeight: "160px",
 });
 
 const MarqueeContent = styled("div")({
@@ -46,7 +49,6 @@ const MarqueeContent = styled("div")({
   minWidth: "200%",
 });
 
-// ✅ 卡片样式优化：height: auto，自动适应内容
 const StyledPaper = styled(Paper)(({ theme }) => ({
   background: "rgba(255, 255, 255, 0.95)",
   backdropFilter: "blur(12px)",
@@ -65,7 +67,6 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
   },
 }));
 
-// 随机颜色
 const randomColor = () => {
   const colors = ["#7e57c2", "#d81b60", "#6a1b9a", "#42a5f5", "#ff7043"];
   return colors[Math.floor(Math.random() * colors.length)];
@@ -74,6 +75,7 @@ const randomColor = () => {
 export default function Relay({ onSwipeRight }) {
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState([]);
+  const [error, setError] = useState("");
 
   const [form, setForm] = useState({
     surname: "",
@@ -85,10 +87,12 @@ export default function Relay({ onSwipeRight }) {
 
   const loadMessages = async () => {
     try {
-      const res = await axios.get("https://buz-love-tree.onrender.com/api/relay");
+      const res = await axios.get(`${API_BASE}/relay`);
       setItems(res.data);
-    } catch {
-      console.log("后端拉取失败");
+      setError("");
+    } catch (err) {
+      console.error("拉取寄语失败", err);
+      setError("暂时无法加载寄语，请稍后再试");
     }
   };
 
@@ -101,6 +105,11 @@ export default function Relay({ onSwipeRight }) {
   };
 
   const publish = async () => {
+    if (!form.surname.trim() || !form.text.trim()) {
+      setError("请填写姓氏和寄语内容");
+      return;
+    }
+
     const newMsg = {
       name: form.surname + form.gender,
       years: "—",
@@ -113,7 +122,8 @@ export default function Relay({ onSwipeRight }) {
     };
 
     try {
-      await axios.post("/api/relay", newMsg);
+      // ✅ 修复：使用完整 API 地址，不再用相对路径
+      await axios.post(`${API_BASE}/relay`, newMsg);
       loadMessages();
       setForm({
         surname: "",
@@ -122,8 +132,10 @@ export default function Relay({ onSwipeRight }) {
         disease: "",
         text: "",
       });
+      setError("");
     } catch (err) {
       console.error("发布失败", err);
+      setError("寄语发布失败，请检查网络或稍后再试");
     }
 
     setOpen(false);
@@ -140,10 +152,9 @@ export default function Relay({ onSwipeRight }) {
         justifyContent: "center",
         px: 2,
         py: 4,
-        overflow: "hidden", // 防止子元素溢出
+        overflow: "hidden",
       }}
     >
-      {/* ✅ 标题：确保显示且居中 */}
       <Typography
         variant="h4"
         align="center"
@@ -157,19 +168,23 @@ export default function Relay({ onSwipeRight }) {
           backgroundClip: 'text',
           color: 'transparent',
           lineHeight: 1.2,
-          mt:-3
+          mt: -3,
         }}
       >
         温暖寄语墙
       </Typography>
 
-      <Typography
-        align="center" color="text.secondary" sx={{ mb: 3 }}
-      >
+      <Typography align="center" color="text.secondary" sx={{ mb: 3 }}>
         已康复病友写下寄语，生成抗癌卡片送给新的病友
       </Typography>
 
-      {/* 走马灯区域 */}
+      {/* 错误提示 */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2, maxWidth: 500 }}>
+          {error}
+        </Alert>
+      )}
+
       {items.length === 0 ? (
         <Box
           sx={{
@@ -187,7 +202,7 @@ export default function Relay({ onSwipeRight }) {
         <MarqueeContainer>
           <MarqueeContent>
             {[...items, ...items].map((it, idx) => (
-              <StyledPaper key={`${it.date}-${idx}`}>
+              <StyledPaper key={`${it._id || it.date}-${idx}`}>
                 <Box sx={{ display: "flex", alignItems: "flex-start", gap: 2, mb: 1.5 }}>
                   <Box
                     sx={{
@@ -247,7 +262,6 @@ export default function Relay({ onSwipeRight }) {
         </MarqueeContainer>
       )}
 
-      {/* 发布按钮 */}
       <Button
         variant="contained"
         color="primary"
@@ -264,7 +278,6 @@ export default function Relay({ onSwipeRight }) {
         写下你的寄语
       </Button>
 
-      {/* 弹窗 */}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>发布你的寄语</DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
@@ -311,6 +324,11 @@ export default function Relay({ onSwipeRight }) {
             value={form.text}
             onChange={(e) => handleChange("text", e.target.value)}
           />
+          {error && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+              {error}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>取消</Button>
