@@ -263,13 +263,14 @@ router.get("/", async (req, res) => {
   }
 });
 
+// routes/mascot.js 中的 /latest 路由
 router.get("/latest", async (req, res) => {
   const deviceId = req.headers["x-device-id"];
   if (!deviceId) {
     return res.status(400).json({ 
       success: false, 
-      error: "缺少设备标识 x-device-id",
-      mascot: { imageUrl: "/lucky.jpg" }
+      error: "缺少设备标识 x-device-id"
+      // 不要在这里塞 imageUrl！
     });
   }
 
@@ -278,24 +279,15 @@ router.get("/latest", async (req, res) => {
     if (latest) {
       res.json({ success: true, mascot: latest });
     } else {
-      res.json({
-        success: true,
-        mascot: {
-          _id: null,
-          textPrompt: "暂无语音生成记录",
-          likes: 0,
-          deviceId,
-          createdAt: null,
-          imageUrl: "/lucky.jpg" // 添加占位图字段
-        }
-      });
+      // ✅ 只返回 success 和空 mascot，或 mascot 为 null
+      res.json({ success: true, mascot: null });
+      // 或者：res.json({ success: true, mascot: {} });
     }
   } catch (err) {
     console.error("获取设备最新吉祥物失败:", err);
     res.status(500).json({ 
       success: false, 
-      error: "服务器错误",
-      mascot: { imageUrl: "/lucky.jpg" }
+      error: "服务器错误"
     });
   }
 });
