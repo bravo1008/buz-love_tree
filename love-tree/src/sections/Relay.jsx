@@ -305,6 +305,7 @@ export default function Relay({ onSwipeRight }) {
             value={form.identity}
             onChange={(e) => handleChange("identity", e.target.value)}
           >
+            <MenuItem value="治疗中">治疗中</MenuItem>
             <MenuItem value="康复者">康复者</MenuItem>
             <MenuItem value="陪护者">陪护者</MenuItem>
             <MenuItem value="家属">家属</MenuItem>
