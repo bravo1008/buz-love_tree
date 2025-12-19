@@ -1,3 +1,5 @@
+// FILE: src/components/Tree.jsx
+
 import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
@@ -10,8 +12,7 @@ import {
   IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import treeVideo from "../assets/love.webm"; // WebM 格式（20MB）
-import posterImage from "../assets/tree-poster.jpg"; // 👈 新增：轻量占位图（<100KB）
+import treeVideo from "../assets/love.webm"; // WebM 格式
 import Voice from "./Voice";
 import SwipeHintButton from "../components/SwipeHintButton";
 import luckImg from '../assets/lucky.jpg';
@@ -24,7 +25,6 @@ export default function Tree({ onSwipeRight }) {
   const [hangingMascots, setHangingMascots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [latestMascot, setLatestMascot] = useState(null);
-  const [videoLoaded, setVideoLoaded] = useState(false); // 👈 新增：控制视频加载状态
 
   // 新增：控制图片预览弹窗的状态
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -33,6 +33,7 @@ export default function Tree({ onSwipeRight }) {
 
   const needsRefreshRef = useRef(false);
 
+  // 八个固定位置坐标
   const hangingPositions = [
     { top: "34%", left: "42%" },
     { top: "34%", left: "62%" },
@@ -43,6 +44,8 @@ export default function Tree({ onSwipeRight }) {
     { top: "46%", left: "52%" },
     { top: "43%", left: "76%" },
   ];
+
+  // ❌ 删除了 fetchTopMascots 和 fetchLatestMascot
 
   const generateUniqueKey = (mascot, index) => {
     if (mascot._id) {
@@ -56,11 +59,13 @@ export default function Tree({ onSwipeRight }) {
   const updateHangingMascots = async () => {
     setLoading(true);
     try {
+      // ✅ 使用 ai.js 的封装函数
       const [topMascots, latestResponse] = await Promise.all([
         getTopMascots(),
         getLatestMascot(),
       ]);
 
+      // ✅ 正确解构 latest
       const latest = latestResponse?.success ? latestResponse.mascot : null;
       setLatestMascot(latest);
 
@@ -91,7 +96,7 @@ export default function Tree({ onSwipeRight }) {
         } else {
           mascotsToHang.push({
             _id: `placeholder-${i}`,
-            imageUrl: null,
+            imageUrl: null, // 明确设为 null
             isLatest: false,
             position: hangingPositions[i],
             isPlaceholder: true,
@@ -104,6 +109,7 @@ export default function Tree({ onSwipeRight }) {
       }
 
       if (latest && latest.imageUrl) {
+        // ✅ 只有有 imageUrl 才挂最新
         mascotsToHang.push({
           ...latest,
           isLatest: true,
@@ -213,7 +219,7 @@ export default function Tree({ onSwipeRight }) {
     <>
       <style>{swingKeyframes}</style>
 
-      {/* ====== Tree 主容器 ====== */}
+      {/* ====== Tree 主容器（相对定位，建立本地背景上下文） ====== */}
       <Box
         sx={{
           width: "100vw",
@@ -223,7 +229,7 @@ export default function Tree({ onSwipeRight }) {
           overflow: "hidden",
         }}
       >
-        {/* ====== 背景视频（带 poster 占位） ====== */}
+        {/* ====== 局部背景视频 ====== */}
         <Box
           component="video"
           autoPlay
@@ -231,8 +237,6 @@ export default function Tree({ onSwipeRight }) {
           loop
           playsInline
           src={treeVideo}
-          poster={posterImage} // 👈 关键：先显示静态图
-          onLoadedData={() => setVideoLoaded(true)} // 可选：用于调试或后续逻辑
           sx={{
             position: "absolute",
             top: 0,
@@ -242,8 +246,6 @@ export default function Tree({ onSwipeRight }) {
             objectFit: "cover",
             zIndex: -1,
             pointerEvents: "none",
-            opacity: videoLoaded ? 1 : 0.98,
-            transition: "opacity 0.4s ease",
           }}
         />
 
@@ -305,7 +307,6 @@ export default function Tree({ onSwipeRight }) {
                     <Box
                       component="img"
                       src={mascot.imageUrl}
-                      loading="lazy" // 👈 原生懒加载
                       alt="吉祥物"
                       sx={{
                         width: "100%",
@@ -434,7 +435,8 @@ export default function Tree({ onSwipeRight }) {
                   objectFit: "contain",
                   borderRadius: 1,
                   boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-                  clipPath: "inset(0 0 5% 0)",
+                   // 👇 关键：裁剪掉底部 10%
+                  clipPath: "inset(0 0 5% 0)", 
                 }}
               />
             )}
