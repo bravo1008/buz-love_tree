@@ -25,7 +25,7 @@ mongoose
 app.use("/api/letters", letterRoutes);
 app.use("/api/relay", relayRoutes);
 app.use("/api/mascot", mascotRoutes);
-app.use("/api/map", mapRoutes);
+app.use("/api/stars", mapRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`后端已运行在端口 ${PORT}`));

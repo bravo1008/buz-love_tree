@@ -1,54 +1,42 @@
-// routes/mapRoutes.js
+// routes/starRoutes.js
 import express from "express";
-import MapPoint from "../models/MapPoint.js";
-import { getCoordinates } from "../utils/geocode.js"; // 替换 geocode
+import Star from "../models/MapPoint.js";
 
 const router = express.Router();
 
-router.get("/all", async (req, res) => {
+// 获取所有星星
+router.get("/", async (req, res) => {
   try {
-    const points = await MapPoint.find();
-    res.json(points);
+    const stars = await Star.find().sort({ createdAt: -1 });
+    res.json(stars);
   } catch (err) {
-    console.error("Get all points error:", err);
+    console.error("获取星星失败:", err);
     res.status(500).json({ error: "服务器内部错误" });
   }
 });
 
-router.post("/add", async (req, res) => {
-  const { country, province } = req.body;
+// 添加新星星
+router.post("/", async (req, res) => {
+  const { province, city, lat, lng, size } = req.body;
 
-  if (!country || !province) {
-    return res.status(400).json({ error: "国家和省份不能为空" });
+  if (!province || lat == null || lng == null) {
+    return res.status(400).json({ error: "缺少必要字段" });
   }
 
   try {
-    // 直接查本地坐标表
-    const coords = getCoordinates(country, province);
-    if (!coords) {
-      return res.status(400).json({ error: "暂不支持该国家或省份，请选择列表中的选项" });
-    }
+    const star = new Star({
+      province,
+      city: city?.trim() || null,
+      lat,
+      lng,
+      size: size || "small"
+    });
 
-    let point = await MapPoint.findOne({ country, province });
-    if (point) {
-      point.count += 1;
-      await point.save();
-    } else {
-      point = new MapPoint({
-        country,
-        province,
-        lat: coords[0],
-        lng: coords[1],
-        count: 1
-      });
-      await point.save();
-    }
-
-    const allPoints = await MapPoint.find();
-    res.json(allPoints);
+    await star.save();
+    res.status(201).json(star);
   } catch (err) {
-    console.error("Add location error:", err);
-    res.status(500).json({ error: "添加位置失败" });
+    console.error("添加星星失败:", err);
+    res.status(500).json({ error: "保存失败，请重试" });
   }
 });
 
