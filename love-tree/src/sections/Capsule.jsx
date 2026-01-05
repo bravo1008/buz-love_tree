@@ -82,10 +82,10 @@ const LetterApp = ({ onSwipeRight }) => {
         flexDirection: 'column',
         overflowY: 'auto',
         boxSizing: 'border-box',
-        mt:7
+        mt: -8
       }}
     >
-      {/* 背景动效 */}
+      {/* 背景动效 —— 改为暖橙黄色 */}
       <Box sx={{ 
         position: 'absolute',
         inset: 0,
@@ -99,7 +99,7 @@ const LetterApp = ({ onSwipeRight }) => {
             left: '5%',
             width: '16rem',
             height: '16rem',
-            background: 'rgba(79, 218, 160, 0.15)',
+            background: 'rgba(245, 158, 11, 0.15)', // amber-600 暖色
             borderRadius: '9999px',
             filter: 'blur(3rem)',
           }}
@@ -113,7 +113,7 @@ const LetterApp = ({ onSwipeRight }) => {
             right: '10%',
             width: '20rem',
             height: '20rem',
-            background: 'rgba(56, 189, 248, 0.12)',
+            background: 'rgba(251, 146, 60, 0.12)', // orange-400 暖色
             borderRadius: '9999px',
             filter: 'blur(3rem)',
           }}
@@ -122,27 +122,19 @@ const LetterApp = ({ onSwipeRight }) => {
         />
       </Box>
 
-      {/* 标题 */}
-      <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 20, mt:5 }}>
-        <Typography
-              variant="h4"
-              align="center"
-              sx={{
-                fontSize: { xs: '2.25rem', md: '3rem' },
-                fontWeight: 'bold',
-                mb: 2,
-                background: 'linear-gradient(to right, #1e40af, #1d4d4b)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-                color: 'transparent',
-              }}
-            >
-              时光信笺
-            </Typography>
-      <Typography align="center" color="text.secondary" sx={{ mb: 3 }}>
-        写下你的心情，封存美好回忆，让每一封信都成为时光的见证
-      </Typography>
+      {/* 标题 —— 可选：文字颜色更暖 */}
+      <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 20, mt: 5 }}>
+        <Typography 
+          align="center" 
+          sx={{ 
+            mb: 3,
+            color: '#d97706', // 深橙色文字，增强暖感
+            fontWeight: 500,
+            lineHeight: 1.5
+          }}
+        >
+          写下你的心情，封存美好回忆，让每一封信都成为时光的见证
+        </Typography>
       </Box>
 
       {/* 主内容区 */}
@@ -157,16 +149,16 @@ const LetterApp = ({ onSwipeRight }) => {
           zIndex: 10,
         }}
       >
-        {/* 展柜 */}
+        {/* 展柜 —— 边框改为暖色 */}
         <Box
           sx={{
             flex: { xs: '0 0 100%', md: '0 0 620px' },
             maxWidth: { xs: '100%', md: '620px' },
             background: 'rgba(255,255,255,0.95)',
             borderRadius: '12px',
-            border: '2px solid rgba(16, 185, 129, 0.2)',
+            border: '2px solid rgba(245, 158, 11, 0.3)', // ✅ 暖橙色边框
             p: 1,
-            boxShadow: '0 8px 18px rgba(2,6,23,0.06)',
+            boxShadow: '0 8px 18px rgba(245, 158, 11, 0.08)', // 微暖投影
           }}
         >
           <Box sx={{ maxHeight: '600px', overflowY: 'auto', pr: 1 }}>

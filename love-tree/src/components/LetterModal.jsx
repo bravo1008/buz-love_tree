@@ -2,13 +2,11 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 
-// 检测是否在微信内置浏览器
 const isWechatBrowser = () => {
   const ua = navigator.userAgent.toLowerCase();
   return /micromessenger/.test(ua);
 };
 
-// 信件弹窗组件
 const LetterModal = ({ letter, onClose }) => {
   if (!letter) return null;
 
@@ -42,6 +40,9 @@ const LetterModal = ({ letter, onClose }) => {
     }
   };
 
+  // 使用 letter.color，兜底为 amber
+  const barColor = letter.color || '#f59e0b';
+
   return (
     <AnimatePresence>
       <motion.div
@@ -51,7 +52,7 @@ const LetterModal = ({ letter, onClose }) => {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'linear-gradient(to bottom right, rgba(16, 185, 129, 0.2), rgba(34, 211, 238, 0.2))',
+          background: 'linear-gradient(to bottom right, rgba(245, 158, 11, 0.2), rgba(251, 146, 60, 0.2))',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -73,7 +74,7 @@ const LetterModal = ({ letter, onClose }) => {
             width: '100%',
             maxHeight: '80vh',
             overflowY: 'auto',
-            border: '1px solid #ccfbf1'
+            border: '1px solid #ffedd5'
           }}
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -81,11 +82,11 @@ const LetterModal = ({ letter, onClose }) => {
           transition={{ type: 'spring', damping: 25 }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* 信封顶部 */}
+          {/* 信封顶部 —— 使用动态颜色 */}
           <motion.div
             style={{
               height: '4rem',
-              background: 'linear-gradient(to bottom, #ecfdf5, #f0fdfa)',
+              background: 'linear-gradient(to bottom, #fffbeb, #fef3c7)',
               borderRadius: '0.75rem 0.75rem 0 0',
               position: 'relative',
               overflow: 'hidden'
@@ -101,10 +102,9 @@ const LetterModal = ({ letter, onClose }) => {
                 left: 0,
                 right: 0,
                 height: '0.5rem',
-                backgroundColor: letter.color || '#10b981'
+                backgroundColor: barColor // ✅ 动态颜色
               }}
             ></div>
-
             <motion.div
               style={{
                 position: 'absolute',
@@ -112,7 +112,7 @@ const LetterModal = ({ letter, onClose }) => {
                 left: 0,
                 right: 0,
                 height: '0.5rem',
-                backgroundColor: letter.color || '#10b981'
+                backgroundColor: barColor // ✅ 动态颜色
               }}
               initial={{ width: 0, x: '50%' }}
               animate={{ width: '80%', x: '10%' }}
@@ -124,77 +124,41 @@ const LetterModal = ({ letter, onClose }) => {
           <motion.div
             style={{
               padding: '2rem',
-              background: 'linear-gradient(to bottom, white, #f0fdfa)'
+              background: 'linear-gradient(to bottom, white, #fef3c7)'
             }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.5 }}
           >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                marginBottom: '1.5rem'
-              }}
-            >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem' }}>
               <div>
-                <h2
-                  style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 'bold',
-                    color: '#065f46'
-                  }}
-                >
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#b45309' }}>
                   {letter.title}
                 </h2>
-                <p
-                  style={{
-                    color: '#0d9488',
-                    marginTop: '0.25rem'
-                  }}
-                >
+                <p style={{ color: '#d97706', marginTop: '0.25rem' }}>
                   {letter.date}
                 </p>
               </div>
-
               <motion.button
                 style={{
                   padding: '0.5rem',
                   borderRadius: '9999px',
-                  background: '#ccfbf1',
-                  color: '#0d9488',
+                  background: '#ffedd5',
+                  color: '#d97706',
                   transition: 'background-color 0.2s',
                   border: 'none',
                   outline: 'none'
                 }}
-                whileHover={{ scale: 1.1, backgroundColor: '#99f6e4' }}
+                whileHover={{ scale: 1.1, backgroundColor: '#fed7aa' }}
                 whileTap={{ scale: 0.9 }}
                 onClick={handleShare}
               >
                 <i className="fa-solid fa-share-alt"></i>
               </motion.button>
             </div>
-
             <div style={{ position: 'relative' }}>
-              <div
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  bottom: 0,
-                  left: '2rem',
-                  width: '0.5px',
-                  background: '#ccfbf1'
-                }}
-              ></div>
-              <p
-                style={{
-                  color: '#064e3b',
-                  lineHeight: '1.6',
-                  marginLeft: '3rem',
-                  whiteSpace: 'pre-line'
-                }}
-              >
+              <div style={{ position: 'absolute', top: 0, bottom: 0, left: '2rem', width: '0.5px', background: '#ffedd5' }}></div>
+              <p style={{ color: '#92400e', lineHeight: '1.6', marginLeft: '3rem', whiteSpace: 'pre-line' }}>
                 {letter.content}
               </p>
             </div>
@@ -205,7 +169,7 @@ const LetterModal = ({ letter, onClose }) => {
             style={{
               padding: '1.5rem',
               background: 'white',
-              borderTop: '1px solid #ccfbf1',
+              borderTop: '1px solid #ffedd5',
               display: 'flex',
               justifyContent: 'flex-end'
             }}
@@ -216,15 +180,14 @@ const LetterModal = ({ letter, onClose }) => {
             <motion.button
               style={{
                 padding: '0.5rem 1.5rem',
-                background: 'linear-gradient(to right, #10b981, #22d3ee)',
+                background: 'linear-gradient(to right, #f59e0b, #fb923c)',
                 color: 'white',
                 borderRadius: '0.5rem',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                transition: 'all 0.2s',
                 border: 'none',
                 outline: 'none'
               }}
-              whileHover={{ scale: 1.05, boxShadow: '0 4px 12px rgba(34, 211, 238, 0.3)' }}
+              whileHover={{ scale: 1.05, boxShadow: '0 4px 12px rgba(251, 146, 60, 0.3)' }}
               whileTap={{ scale: 0.95 }}
               onClick={onClose}
             >

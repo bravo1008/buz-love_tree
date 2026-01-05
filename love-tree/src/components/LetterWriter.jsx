@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 const LetterWriter = ({ onSealLetter }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [selectedColor, setSelectedColor] = useState('#10b981'); // emerald-500
+  const [selectedColor, setSelectedColor] = useState('#f59e0b'); // amber-600
 
   const getCurrentDate = () => {
     const now = new Date();
@@ -38,22 +38,22 @@ const LetterWriter = ({ onSealLetter }) => {
     setContent('');
   };
 
-  // 配色改为 emerald/cyan/sky 系列
-  const colors = ['#10b981', '#0ea5e9', '#0284c7', '#22d3ee', '#7dd3fc'];
+  // 暖色系配色：amber/orange/yellow
+  const colors = ['#f59e0b', '#f97316', '#fb923c', '#fbbf24', '#fcd34d'];
 
   return (
     <motion.div 
       style={{
-        background: 'linear-gradient(to bottom right, white, #ecfeff)', // cyan-50
+        background: 'linear-gradient(to bottom right, white, #fffbeb)',
         borderRadius: '0.75rem',
-        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+        boxShadow: '0 10px 15px -3px rgba(245, 158, 11, 0.15)',
         padding: '1rem',
         display: 'flex',
         width: '100%',
         boxSizing: 'border-box',
         flexDirection: 'column',
         height: '100%',
-        border: '1px solid #a5f3fc'
+        border: '1px solid #fed7aa'
       }}
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
@@ -62,7 +62,7 @@ const LetterWriter = ({ onSealLetter }) => {
       <h2 style={{
         fontSize: '1.5rem',
         fontWeight: 'bold',
-        background: 'linear-gradient(to right, #0d9488, #0ea5e9)',
+        background: 'linear-gradient(to right, #d97706, #ea580c)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',
@@ -80,7 +80,7 @@ const LetterWriter = ({ onSealLetter }) => {
             display: 'block',
             fontSize: '0.875rem',
             fontWeight: '600',
-            color: '#0891b2',
+            color: '#d97706',
             marginBottom: '0.25rem'
           }}>主题</label>
           <input
@@ -91,10 +91,10 @@ const LetterWriter = ({ onSealLetter }) => {
             style={{
               width: '100%',
               padding: '0.5rem 1rem',
-              border: '1px solid #a5f3fc',
+              border: '1px solid #fed7aa',
               borderRadius: '0.5rem',
               outline: 'none',
-              background: 'rgba(255, 255, 255, 0.8)'
+              background: '#ffffff'
             }}
           />
         </div>
@@ -104,7 +104,7 @@ const LetterWriter = ({ onSealLetter }) => {
             display: 'block',
             fontSize: '0.875rem',
             fontWeight: '600',
-            color: '#0891b2',
+            color: '#d97706',
             marginBottom: '0.25rem'
           }}>日期</label>
           <input
@@ -114,10 +114,10 @@ const LetterWriter = ({ onSealLetter }) => {
             style={{
               width: '100%',
               padding: '0.5rem 1rem',
-              background: '#ecfeff',
-              border: '1px solid #a5f3fc',
+              background: '#ffffff',
+              border: '1px solid #fed7aa',
               borderRadius: '0.5rem',
-              color: '#0e7490',
+              color: '#b45309',
               cursor: 'not-allowed'
             }}
           />
@@ -128,7 +128,7 @@ const LetterWriter = ({ onSealLetter }) => {
             display: 'block',
             fontSize: '0.875rem',
             fontWeight: '600',
-            color: '#0891b2',
+            color: '#d97706',
             marginBottom: '0.25rem'
           }}>信件内容</label>
           <textarea
@@ -138,12 +138,12 @@ const LetterWriter = ({ onSealLetter }) => {
             style={{
               width: '100%',
               padding: '0.75rem 1rem',
-              border: '1px solid #a5f3fc',
+              border: '1px solid #fed7aa',
               borderRadius: '0.5rem',
               outline: 'none',
               height: '9rem',
               resize: 'none',
-              background: 'rgba(255, 255, 255, 0.8)'
+              background: '#ffffff'
             }}
           ></textarea>
         </div>
@@ -153,7 +153,7 @@ const LetterWriter = ({ onSealLetter }) => {
             display: 'block',
             fontSize: '0.875rem',
             fontWeight: '600',
-            color: '#0891b2',
+            color: '#d97706',
             marginBottom: '0.25rem'
           }}>选择信封颜色</label>
           <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -169,7 +169,7 @@ const LetterWriter = ({ onSealLetter }) => {
                   border: 'none',
                   outline: 'none',
                   ...(selectedColor === color ? {
-                    boxShadow: '0 0 0 2px #0ea5e9, 0 0 0 4px white',
+                    boxShadow: '0 0 0 2px #f97316, 0 0 0 4px white',
                     transform: 'scale(1.1)'
                   } : {})
                 }}
@@ -185,19 +185,19 @@ const LetterWriter = ({ onSealLetter }) => {
         style={{
           marginTop: '1.5rem',
           width: '100%',
-          background: 'linear-gradient(to right, #10b981, #0ea5e9)',
+          background: 'linear-gradient(to right, #f59e0b, #f97316)',
           color: 'white',
           fontWeight: '600',
           padding: '0.75rem 1rem',
           borderRadius: '0.5rem',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+          boxShadow: '0 4px 6px -1px rgba(245, 158, 11, 0.2)',
           border: 'none',
           outline: 'none',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center'
         }}
-        whileHover={{ scale: 1.02, boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)' }}
+        whileHover={{ scale: 1.02, boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)' }}
         whileTap={{ scale: 0.98 }}
         onClick={handleSealLetter}
       >

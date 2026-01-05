@@ -1,6 +1,5 @@
-// FILE: src/App.jsx
-import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Tree from './sections/Tree';
 import Voice from './sections/Voice';
@@ -9,65 +8,18 @@ import Relay from './sections/Relay';
 import MapSection from './sections/Map';
 import LetterDetailPage from './components/LetterDetailPage';
 import { Box } from '@mui/material';
-import SwipeHintButton from './components/SwipeHintButton';
 
 export default function App() {
   const [loading, setLoading] = useState(true);
-  const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const scrollContainerRef = useRef(null);
-
-  const homePages = [
-    { id: 'tree', component: <Tree><Voice /></Tree> },
-    { id: 'capsule', component: <Capsule /> },
-    { id: 'relay', component: <Relay /> },
-    { id: 'map', component: <MapSection /> },
-  ];
-
-  const totalPages = homePages.length;
 
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 900);
-    return () => clearTimeout(t);
+    const timer = setTimeout(() => setLoading(false), 900);
+    return () => clearTimeout(timer);
   }, []);
-
-  // ✅ 修正：不依赖 currentPageIndex，直接从 scrollLeft 计算下一页
-  const scrollToNextPage = useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const pageWidth = window.innerWidth;
-    const currentScroll = container.scrollLeft;
-    const currentPage = Math.floor(currentScroll / pageWidth); // 👈 floor!
-    const nextPage = currentPage + 1;
-
-    if (nextPage < totalPages) {
-      container.scrollTo({
-        left: nextPage * pageWidth,
-        behavior: 'smooth',
-      });
-    }
-  }, [totalPages]); // 不再依赖 currentPageIndex
-
-  // ✅ 用 Math.floor 更新 currentPageIndex
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const handleScroll = () => {
-      const pageWidth = window.innerWidth;
-      const scrollLeft = container.scrollLeft;
-      const index = Math.floor(scrollLeft / pageWidth); // 👈 关键：用 floor
-      setCurrentPageIndex(Math.min(index, totalPages - 1));
-    };
-
-    handleScroll(); // 初始化
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [totalPages]);
 
   if (loading) {
     return (
-      <div className="w-screen h-screen flex items-center justify-center day-night-bg">
+      <div className="w-screen h-screen flex items-center justify-center day-night-bg" style={{backgroundColor: '#fffaf5'}}>
         <div style={{ textAlign: 'center' }}>
           <div
             style={{
@@ -76,10 +28,11 @@ export default function App() {
               borderRadius: 28,
               border: '6px solid rgba(255,255,255,0.2)',
               borderTopColor: 'var(--accent)',
+              backgroundColor: '#fffaf5', // 统一背景色
             }}
             className="spin"
           />
-          <div style={{ marginTop: 12 }}>加载中，请稍候...</div>
+          <div style={{ marginTop: 12, color: '#2a2a2a' }}>加载中，请稍候...</div>
         </div>
       </div>
     );
@@ -87,10 +40,12 @@ export default function App() {
 
   return (
     <Router>
-      <div className="w-screen day-night-bg">
+      <div className="w-screen day-night-bg" style={{backgroundColor: '#fffaf5'}}>
         <Routes>
+          {/* 详情页 */}
           <Route path="/letter/:id" element={<LetterDetailPage />} />
 
+          {/* 主页内容：通过导航跳转 */}
           <Route
             path="/*"
             element={
@@ -101,44 +56,29 @@ export default function App() {
                   height: '100vh',
                   overflow: 'hidden',
                   position: 'relative',
+                  backgroundColor: '#fffaf5', // 统一背景色
                 }}
               >
                 <Navbar />
 
+                {/* 主内容区 */}
                 <Box
-                  ref={scrollContainerRef}
                   sx={{
                     flex: 1,
-                    display: 'flex',
-                    overflowX: 'auto',
-                    overflowY: 'hidden',
-                    scrollSnapType: 'x mandatory',
-                    WebkitOverflowScrolling: 'touch',
-                    scrollbarWidth: 'none',
-                    '&::-webkit-scrollbar': { display: 'none' },
+                    overflowY: 'auto',
+                    padding: '2rem',
+                    background: '#fffaf5', // 统一背景色
+                    boxShadow: 'inset 0 0 10px rgba(0,0,0,0.05)',
+                    backgroundImage: 'linear-gradient(to bottom, #fffaf5, #f9f9f9)', // 渐变保持米色系
                   }}
                 >
-                  {homePages.map((page, index) => (
-                    <Box
-                      key={page.id}
-                      sx={{
-                        minWidth: '100vw',
-                        scrollSnapAlign: 'start',
-                        height: 'calc(100vh - 64px)',
-                        overflowY: 'auto',
-                        boxSizing: 'border-box',
-                        position: 'relative',
-                      }}
-                    >
-                      {page.component}
-                    </Box>
-                  ))}
+                  <Routes>
+                    <Route path="/" element={<Tree><Voice /></Tree>} />
+                    <Route path="/capsule" element={<Capsule />} />
+                    <Route path="/relay" element={<Relay />} />
+                    <Route path="/map" element={<MapSection />} />
+                  </Routes>
                 </Box>
-
-                {/* ✅ 只要不是最后一页，就显示按钮 */}
-                {currentPageIndex < totalPages - 1 && (
-                  <SwipeHintButton onClick={scrollToNextPage} />
-                )}
               </Box>
             }
           />

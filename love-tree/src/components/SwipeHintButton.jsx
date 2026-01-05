@@ -19,17 +19,17 @@ export default function SwipeHintButton({ onClick }) {
         width: 52,
         height: 52,
         borderRadius: "50%",
-        backgroundColor: "rgba(255, 255, 255, 0.25)",
+        backgroundColor: "#3e92cc", // 👈 改为蓝色（也可用 #64b464 换成绿色）
         backdropFilter: "blur(10px)",
         WebkitBackdropFilter: "blur(10px)", // Safari 兼容
-        border: "1px solid rgba(255, 255, 255, 0.3)",
+        border: "none", // 去掉白边，更干净
         color: "#ffffff",
         cursor: "pointer",
         transition: "all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)",
         "&:hover": {
-          backgroundColor: "rgba(255, 255, 255, 0.35)",
+          backgroundColor: "#2c7bb6", // 蓝色加深（hover 状态）
           transform: "translateX(4px) scale(1.08)",
-          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.15)",
+          boxShadow: "0 4px 20px rgba(62, 146, 204, 0.4)", // 蓝色光晕
         },
         "& svg": {
           fontSize: "1.4rem",

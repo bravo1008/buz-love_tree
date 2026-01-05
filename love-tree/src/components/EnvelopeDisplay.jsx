@@ -10,7 +10,7 @@ const EnvelopeDisplay = ({ letters, onSelectLetter, gridStyle = {} }) => {
           style={{
             fontSize: '1.5rem',
             fontWeight: 'bold',
-            background: 'linear-gradient(to right, #0d9488, #0ea5e9)',
+            background: 'linear-gradient(to right, #d97706, #ea580c)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
             backgroundClip: 'text',
@@ -20,7 +20,7 @@ const EnvelopeDisplay = ({ letters, onSelectLetter, gridStyle = {} }) => {
         >
           <i className="fa-solid fa-box-open mr-2"></i>信件展柜
         </h2>
-        <p className="text-sm" style={{ color: '#0891b2', fontSize: '0.875rem' }}>
+        <p className="text-sm" style={{ color: '#d97706', fontSize: '0.875rem' }}>
           点击信封查看内容
         </p>
       </div>
@@ -79,7 +79,7 @@ const EnvelopeDisplay = ({ letters, onSelectLetter, gridStyle = {} }) => {
 
             {letters.map((letter, index) => (
               <motion.div
-                key={letter.id}
+                key={letter.id || letter._id || index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.08 }}
@@ -91,12 +91,12 @@ const EnvelopeDisplay = ({ letters, onSelectLetter, gridStyle = {} }) => {
                 <div
                   className="p-6 rounded-lg shadow-md relative"
                   style={{
-                    background: 'linear-gradient(to bottom right, white, #ecfdf5)', // emerald-50
+                    background: 'white',
                     padding: '1.5rem',
                     boxSizing: 'border-box',
                     borderRadius: '0.5rem',
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                    border: `2px solid ${letter.color || '#a7f3d0'}`, // emerald-300 fallback
+                    border: 'none',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
@@ -106,12 +106,13 @@ const EnvelopeDisplay = ({ letters, onSelectLetter, gridStyle = {} }) => {
                     aspectRatio: '3 / 4',
                   }}
                 >
+                  {/* 上部横条：使用 letter.color */}
                   <div
                     className="w-12 h-1 rounded-full self-center"
                     style={{
                       width: '3rem',
                       height: '0.25rem',
-                      background: letter.color || '#10b981', // emerald-500
+                      background: letter.color || '#f59e0b', // ✅ 动态颜色
                       borderRadius: '9999px',
                       alignSelf: 'center'
                     }}
@@ -123,7 +124,7 @@ const EnvelopeDisplay = ({ letters, onSelectLetter, gridStyle = {} }) => {
                       style={{
                         fontSize: '1.125rem',
                         fontWeight: '600',
-                        color: '#065f46', // emerald-800
+                        color: '#b45309',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
@@ -135,7 +136,7 @@ const EnvelopeDisplay = ({ letters, onSelectLetter, gridStyle = {} }) => {
                       className="mt-1"
                       style={{
                         fontSize: '0.875rem',
-                        color: '#0d9488', // emerald-600
+                        color: '#d97706',
                         marginTop: '0.25rem'
                       }}
                     >
@@ -143,6 +144,7 @@ const EnvelopeDisplay = ({ letters, onSelectLetter, gridStyle = {} }) => {
                     </p>
                   </div>
 
+                  {/* 底部进度条（可选保持原色或改暖色） */}
                   <div className="mt-2" style={{ marginTop: '0.5rem' }}>
                     <div
                       className="h-2 rounded-full w-3/4 mx-auto mb-1"
@@ -151,7 +153,7 @@ const EnvelopeDisplay = ({ letters, onSelectLetter, gridStyle = {} }) => {
                         borderRadius: '9999px',
                         width: '75%',
                         margin: '0 auto 0.25rem',
-                        backgroundColor: letter.color || '#34d399'
+                        backgroundColor: '#fed7aa'
                       }}
                     ></div>
                     <div
@@ -161,7 +163,7 @@ const EnvelopeDisplay = ({ letters, onSelectLetter, gridStyle = {} }) => {
                         borderRadius: '9999px',
                         width: '66%',
                         margin: '0 auto',
-                        backgroundColor: letter.color || '#6ee7b7'
+                        backgroundColor: '#ffedd5'
                       }}
                     ></div>
                   </div>

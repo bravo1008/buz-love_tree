@@ -4,7 +4,7 @@ import { getDeviceId } from '../utils/deviceId';
 const API_BASE = 'https://buz-love-tree.onrender.com/api/mascot';
 
 export async function generateMascotFromAudio(audioBlob) {
-  const deviceId = getDeviceId(); // 👈 获取设备 ID
+  const deviceId = getDeviceId();
 
   const form = new FormData();
   form.append("audio", audioBlob, "voice.webm");
@@ -12,8 +12,7 @@ export async function generateMascotFromAudio(audioBlob) {
   const res = await fetch(`${API_BASE}/from-audio`, {
     method: "POST",
     headers: {
-      'x-device-id': deviceId, // ✅ 必须加上！
-      // 注意：不要手动设置 Content-Type，FormData 会自动设置并包含 boundary
+      'x-device-id': deviceId,
     },
     body: form,
   });
@@ -32,7 +31,7 @@ export async function getLatestMascot() {
   const res = await fetch(`${API_BASE}/latest`, {
     method: 'GET',
     headers: {
-      'x-device-id': deviceId, // ✅ 已正确
+      'x-device-id': deviceId,
     },
   });
 
@@ -44,6 +43,7 @@ export async function getLatestMascot() {
   return await res.json();
 }
 
+// ✅ 修改：返回所有吉祥物，不排序、不截断
 export async function getTopMascots() {
   const deviceId = getDeviceId();
   const res = await fetch(`${API_BASE}`, {
@@ -60,7 +60,7 @@ export async function getTopMascots() {
 
   const data = await res.json();
   if (data.success && Array.isArray(data.mascots)) {
-    return data.mascots.sort((a, b) => b.likes - a.likes).slice(0, 7);
+    return data.mascots; // 返回全部
   }
   return [];
 }

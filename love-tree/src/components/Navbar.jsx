@@ -1,45 +1,118 @@
-// FILE: src/components/Navbar.jsx
 import React from 'react';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import { Box, Button, IconButton, useMediaQuery } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import { Link as ScrollLink } from 'react-scroll';
-import { FaTree } from 'react-icons/fa';
+import { Box, Button, useMediaQuery, useTheme } from '@mui/material';
+import { Link, useLocation } from 'react-router-dom';
+import { FaHeart, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
+import {
+  Typography
+} from "@mui/material";
 
 export default function Navbar() {
-  const isMobile = useMediaQuery('(max-width:768px)');
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const location = useLocation();
 
   const navs = [
-    { id: 'home', label: '首页' },
-    { id: 'tree', label: '生命树' },
-    { id: 'waterfall', label: '瀑布数据流' },
-    { id: 'voice', label: '语音互动' },
-    { id: 'capsule', label: '时间胶囊' },
-    { id: 'relay', label: '生命接力' },
-    { id: 'map', label: '微光地图' },
+    { path: '/', label: '祈愿树', icon: <FaHeart /> },
+    { path: '/capsule', label: '时光信笺', icon: <FaEnvelope /> },
+    { path: '/map', label: '微光地图', icon: <FaMapMarkerAlt /> },
   ];
 
-  return (
-    <AppBar position="fixed" sx={{ background: 'rgba(2,6,23,0.6)', backdropFilter: 'blur(6px)' }}>
-      <Toolbar sx={{ justifyContent: 'space-between' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, }}>
-          <FaTree style={{ color: '#008227', fontSize: '24px' }} /> 
-          <Box component="span" sx={{ fontWeight: 700 }}>生命韧性</Box>
-        </Box>
+  const isActive = (path) => location.pathname === path;
 
-        {!isMobile ? (
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            {navs.map(n => (
-              <ScrollLink key={n.id} to={n.id} smooth offset={-80} duration={400}>
-                <Button variant="text" sx={{ color: 'rgba(255,255,255,0.9)' }}>{n.label}</Button>
-              </ScrollLink>
-            ))}
-          </Box>
-        ) : (
-          <IconButton color="inherit"><MenuIcon /></IconButton>
-        )}
-      </Toolbar>
-    </AppBar>
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        width: '100%',
+        maxWidth: '800px',
+        margin: '0 auto',
+        px: 2,
+        py: 3,
+        background: '#fffaf5', // 浅米白背景
+        position: 'relative',
+        zIndex: 1000,
+      }}
+    >
+      {/* 主标题 + 副标题：垂直排列 */}
+      <Box sx={{ textAlign: 'center', mb: 3 }}>
+        <Typography
+          variant="h6"
+          align="center"
+          sx={{
+            fontSize: { xs: '2.25rem', md: '3rem' },
+            fontWeight: 'bold',
+            mb: 2,
+            background: 'linear-gradient(to right, #1e40af, #1d4d4b)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            color: 'transparent',
+          }}
+        >
+          心愿时光
+        </Typography>
+        <Typography
+          align="center" color="text.secondary" sx={{ mb: 0 }}
+        >
+          用温暖连接，让思念看得见
+        </Typography>
+      </Box>
+
+      {/* 导航按钮组 */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: 2,
+          p: 1,
+          borderRadius: '24px',
+          background: '#ffffff',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
+          width: '100%',
+          maxWidth: '600px',
+          overflowX: 'auto',
+          '&::-webkit-scrollbar': { display: 'none' },
+          scrollbarWidth: 'none',
+        }}
+      >
+        {navs.map((item) => (
+          <Button
+            key={item.path}
+            component={Link}
+            to={item.path}
+            startIcon={item.icon}
+            variant={isActive(item.path) ? 'contained' : 'outlined'}
+            sx={{
+              borderRadius: '18px',
+              px: 2,
+              py: 1,
+              minWidth: isMobile ? '90px' : '120px',
+              textTransform: 'none',
+              fontSize: isMobile ? '0.85rem' : '0.95rem',
+              fontWeight: 600,
+              whiteSpace: 'nowrap',
+              border: '1px solid #e0e0e0',
+              color: '#444',
+              backgroundColor: 'transparent',
+              ...(isActive(item.path) && {
+                backgroundColor: '#d32f2f',
+                color: '#ffffff',
+                borderColor: '#c62828',
+                boxShadow: '0 2px 6px rgba(211, 47, 47, 0.3)',
+              }),
+              '&:hover': {
+                backgroundColor: isActive(item.path) ? '#b71c1c' : '#f5f5f5',
+                borderColor: '#d32f2f',
+              },
+              transition: 'all 0.2s ease',
+            }}
+          >
+            {item.label}
+          </Button>
+        ))}
+      </Box>
+    </Box>
   );
 }

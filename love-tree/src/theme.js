@@ -1,4 +1,3 @@
-// FILE: src/theme.js
 import { createTheme } from '@mui/material/styles';
 
 const theme = createTheme({
@@ -14,8 +13,8 @@ const theme = createTheme({
       main: '#d8315b',
     },
     background: {
-      default: 'transparent',
-      paper: 'rgba(255, 255, 255, 0.4)',
+      default: '#fffaf5', // 浅米黄色（柔和、温暖、不刺眼）
+      paper: '#fffaf5', // 更改为与导航栏相同的浅米黄色
     },
     text: {
       primary: '#2a2a2a',
@@ -31,7 +30,8 @@ const theme = createTheme({
         root: {
           backdropFilter: 'blur(12px)',
           borderRadius: '12px',
-          border: '1px solid rgba(255,255,255,0.1)',
+          border: '1px solid rgba(255,255,255,0.3)', // 微调边框对比度以匹配新背景
+          backgroundColor: '#fffaf5', // 显式设置 Paper 背景色为浅米黄色
         },
       },
     },

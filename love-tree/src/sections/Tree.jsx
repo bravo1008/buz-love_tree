@@ -4,143 +4,162 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Button,
-  Dialog,
-  DialogContent,
-  Tooltip,
-  CircularProgress,
   Modal,
   IconButton,
+  Tooltip,
+  CircularProgress,
+  useMediaQuery,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import treeVideo from "../assets/love.webm"; // WebM 格式
+import treeVideo from "../assets/light2.webm";
 import Voice from "./Voice";
-import SwipeHintButton from "../components/SwipeHintButton";
-import luckImg from '../assets/lucky.jpg';
-
-// ✅ 新增导入
 import { getLatestMascot, getTopMascots } from '../api/ai';
 
+// ✅ 扩展到 15 个悬挂位置（模拟树冠分布）
+const hangingPositions = [
+  // 第一层（顶部稀疏）
+  { top: "28%", left: "50%" },
+  // 第二层
+  { top: "36%", left: "40%" },
+  { top: "32%", left: "70%" },
+  // 第三层
+  { top: "38%", left: "17%" },
+  { top: "42%", left: "56%" },
+  { top: "42%", left: "82%" },
+  // 第四层
+  { top: "45%", left: "31%" },
+  { top: "52%", left: "46%" },
+  { top: "50%", left: "65%" },
+  { top: "52%", left: "82%" },
+  // 第五层（底部密集）
+  { top: "53%", left: "20%" },
+];
+
+const swingKeyframes = `
+  @keyframes swing {
+    0% { transform: translate(-50%, -50%) rotate(-10deg); }
+    100% { transform: translate(-50%, -50%) rotate(10deg); }
+  }
+`;
+
+// Fisher-Yates shuffle
+function shuffleArray(array) {
+  const arr = [...array];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 export default function Tree({ onSwipeRight }) {
-  const [openGenerate, setOpenGenerate] = useState(false);
   const [hangingMascots, setHangingMascots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [latestMascot, setLatestMascot] = useState(null);
-
-  // 新增：控制图片预览弹窗的状态
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [previewTitle, setPreviewTitle] = useState("");
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const needsRefreshRef = useRef(false);
-
-  // 八个固定位置坐标
-  const hangingPositions = [
-    { top: "34%", left: "42%" },
-    { top: "34%", left: "62%" },
-    { top: "40%", left: "55%" },
-    { top: "42%", left: "32%" },
-    { top: "47%", left: "67%" },
-    { top: "49%", left: "37%" },
-    { top: "46%", left: "52%" },
-    { top: "43%", left: "76%" },
-  ];
-
-  // ❌ 删除了 fetchTopMascots 和 fetchLatestMascot
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const generateUniqueKey = (mascot, index) => {
-    if (mascot._id) {
-      return `${mascot._id}-${mascot.isLatest ? 'latest' : 'ranked'}-${index}`;
-    } else if (mascot.isPlaceholder) {
-      return `placeholder-${index}-${Math.random().toString(36).substr(2, 9)}`;
-    }
+    if (mascot._id) return `${mascot._id}-${mascot.isLatest ? 'latest' : 'random'}-${index}`;
+    if (mascot.isPlaceholder) return `placeholder-${index}`;
     return `fallback-${index}-${Date.now()}`;
   };
 
   const updateHangingMascots = async () => {
     setLoading(true);
     try {
-      // ✅ 使用 ai.js 的封装函数
-      const [topMascots, latestResponse] = await Promise.all([
-        getTopMascots(),
+      const [allMascots, latestResponse] = await Promise.all([
+        getTopMascots(),      // 现在返回全部
         getLatestMascot(),
       ]);
-
-      // ✅ 正确解构 latest
       const latest = latestResponse?.success ? latestResponse.mascot : null;
       setLatestMascot(latest);
 
       const mascotsToHang = [];
 
-      for (let i = 0; i < 7; i++) {
-        if (topMascots[i]) {
+      // 随机打乱所有吉祥物
+      const shuffled = shuffleArray(allMascots);
+      const randomMascots = shuffled.slice(0, 10); // 取10个
+
+      // 填充前10个位置
+      for (let i = 0; i < 10; i++) {
+        if (randomMascots[i]) {
           mascotsToHang.push({
-            ...topMascots[i],
+            ...randomMascots[i],
             isLatest: false,
             position: hangingPositions[i],
             displayIndex: i + 1,
-            swingAmplitude: 5 + Math.random() * 40,
-            swingDuration: 3 + Math.random() * 1,
-            swingDelay: Math.random() * 0.5,
+            swingAmplitude: 5 + Math.random() * 30,
+            swingDuration: 2.5 + Math.random() * 1.5,
+            swingDelay: Math.random() * 1,
           });
-        } else if (topMascots.length > 0) {
+        } else if (allMascots.length > 0) {
+          // 数据不足：循环复用
+          const fallback = allMascots[i % allMascots.length];
           mascotsToHang.push({
-            ...topMascots[0],
+            ...fallback,
             isLatest: false,
             position: hangingPositions[i],
             displayIndex: i + 1,
             isDuplicate: true,
-            swingAmplitude: 5 + Math.random() * 40,
-            swingDuration: 3 + Math.random() * 1,
-            swingDelay: Math.random() * 0.5,
+            swingAmplitude: 5 + Math.random() * 30,
+            swingDuration: 2.5 + Math.random() * 1.5,
+            swingDelay: Math.random() * 1,
           });
         } else {
+          // 完全无数据：占位符
           mascotsToHang.push({
             _id: `placeholder-${i}`,
-            imageUrl: null, // 明确设为 null
+            imageUrl: null,
             isLatest: false,
             position: hangingPositions[i],
             isPlaceholder: true,
             displayIndex: i + 1,
-            swingAmplitude: 5 + Math.random() * 40,
-            swingDuration: 3 + Math.random() * 1,
-            swingDelay: Math.random() * 0.5,
+            swingAmplitude: 5 + Math.random() * 30,
+            swingDuration: 2.5 + Math.random() * 1.5,
+            swingDelay: Math.random() * 1,
           });
         }
       }
 
+      // 第11个位置：最新吉祥物（优先），否则兜底
       if (latest && latest.imageUrl) {
-        // ✅ 只有有 imageUrl 才挂最新
         mascotsToHang.push({
           ...latest,
           isLatest: true,
-          position: hangingPositions[7],
-          displayIndex: 8,
-          swingAmplitude: 5 + Math.random() * 40,
-          swingDuration: 3 + Math.random() * 1,
-          swingDelay: Math.random() * 0.5,
+          position: hangingPositions[10],
+          displayIndex: 11,
+          swingAmplitude: 5 + Math.random() * 30,
+          swingDuration: 2.5 + Math.random() * 1.5,
+          swingDelay: Math.random() * 1,
         });
-      } else if (topMascots.length > 0) {
+      } else if (allMascots.length > 0) {
+        const fallback = allMascots[0];
         mascotsToHang.push({
-          ...topMascots[0],
+          ...fallback,
           isLatest: true,
-          position: hangingPositions[7],
-          displayIndex: 8,
+          position: hangingPositions[10],
+          displayIndex: 11,
           isDuplicate: true,
-          swingAmplitude: 5 + Math.random() * 40,
-          swingDuration: 3 + Math.random() * 1,
-          swingDelay: Math.random() * 0.5,
+          swingAmplitude: 5 + Math.random() * 30,
+          swingDuration: 2.5 + Math.random() * 1.5,
+          swingDelay: Math.random() * 1,
         });
       } else {
         mascotsToHang.push({
           _id: "placeholder-latest",
           imageUrl: null,
           isLatest: true,
-          position: hangingPositions[7],
+          position: hangingPositions[10],
           isPlaceholder: true,
-          displayIndex: 8,
-          swingAmplitude: 5 + Math.random() * 40,
-          swingDuration: 3 + Math.random() * 1,
-          swingDelay: Math.random() * 0.5,
+          displayIndex: 11,
+          swingAmplitude: 5 + Math.random() * 30,
+          swingDuration: 2.5 + Math.random() * 1.5,
+          swingDelay: Math.random() * 1,
         });
       }
 
@@ -157,40 +176,27 @@ export default function Tree({ onSwipeRight }) {
   }, []);
 
   useEffect(() => {
-    const handleNewMascot = (event) => {
-      const newMascot = event.detail;
-      if (newMascot && newMascot._id) {
+    const handleNewMascot = (e) => {
+      const newMascot = e.detail;
+      if (newMascot?._id) {
         setLatestMascot(newMascot);
         updateHangingMascots();
       }
     };
-
-    const handleRankingChange = () => {
-      updateHangingMascots();
-    };
+    const handleRankingChange = () => updateHangingMascots();
 
     window.addEventListener("newMascotGenerated", handleNewMascot);
     window.addEventListener("rankingChanged", handleRankingChange);
-
     return () => {
       window.removeEventListener("newMascotGenerated", handleNewMascot);
       window.removeEventListener("rankingChanged", handleRankingChange);
     };
   }, []);
 
-  useEffect(() => {
-    if (openGenerate) {
-      needsRefreshRef.current = true;
-    } else if (needsRefreshRef.current) {
-      needsRefreshRef.current = false;
-      updateHangingMascots();
-    }
-  }, [openGenerate]);
-
   const handleMascotClick = (mascot) => {
     if (mascot.isPlaceholder || !mascot.imageUrl) return;
     setPreviewImage(mascot.imageUrl);
-    setPreviewTitle(mascot.isLatest ? "最新吉祥物" : `排行榜第${mascot.displayIndex}名`);
+    setPreviewTitle(mascot.isLatest ? "我的吉祥物" : `吉祥物 #${mascot.displayIndex}`);
     setPreviewOpen(true);
   };
 
@@ -208,28 +214,57 @@ export default function Tree({ onSwipeRight }) {
     };
   };
 
-  const swingKeyframes = `
-    @keyframes swing {
-      0% { transform: translate(-50%, -50%) rotate(-15deg); }
-      100% { transform: translate(-50%, -50%) rotate(15deg); }
-    }
-  `;
+  // 动态调整图标大小
+  const iconSize = isFullscreen ? 60 : isMobile ? 36 : 36;
+
+  const treeContainerSx = isFullscreen
+    ? {
+        width: "100vw",
+        height: "100vh",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        zIndex: 1300,
+        mt: 0,
+        backgroundColor: "#113055",
+      }
+    : {
+        width: "100%",
+        height: isMobile ? 300 : 400, // 增高以容纳更多吉祥物
+        position: "relative",
+        mt: 2,
+        overflow: "hidden",
+        borderRadius: "12px",
+        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+        backgroundColor: "#113055",
+      };
 
   return (
     <>
       <style>{swingKeyframes}</style>
 
-      {/* ====== Tree 主容器（相对定位，建立本地背景上下文） ====== */}
-      <Box
-        sx={{
-          width: "100vw",
-          minHeight: "92vh",
-          position: "relative",
-          mt: 2,
-          overflow: "hidden",
-        }}
-      >
-        {/* ====== 局部背景视频 ====== */}
+      {!isFullscreen && (
+        <>
+          <Voice />
+          <Box sx={{ mt: 1, mb: 2, textAlign: "center" }}>
+            <Button
+              variant="contained"
+              onClick={() => setIsFullscreen(true)}
+              sx={{
+                backgroundColor: "#3e92cc",
+                "&:hover": { backgroundColor: "#2c7bb6" },
+                px: 4,
+                py: 1,
+                fontWeight: "bold",
+              }}
+            >
+              🌲 全屏查看许愿树
+            </Button>
+          </Box>
+        </>
+      )}
+
+      <Box sx={treeContainerSx}>
         <Box
           component="video"
           autoPlay
@@ -242,14 +277,14 @@ export default function Tree({ onSwipeRight }) {
             top: 0,
             left: 0,
             width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            zIndex: -1,
+            objectFit: isFullscreen ? "contain" :"cover",
+            height:isFullscreen ?"100%":"120%",
             pointerEvents: "none",
+            backgroundColor: "#113055",
+            zIndex: 0,
           }}
         />
 
-        {/* 悬挂的吉祥物 */}
         {!loading &&
           hangingMascots.map((mascot, index) => {
             const uniqueKey = generateUniqueKey(mascot, index);
@@ -272,21 +307,21 @@ export default function Tree({ onSwipeRight }) {
               >
                 <Box
                   sx={{
-                    width: 40,
-                    height: 40,
+                    width: iconSize,
+                    height: iconSize,
                     borderRadius: "50%",
                     overflow: "hidden",
-                    border: "3px solid",
+                    border: "2px solid",
                     borderColor: mascot.isLatest ? "#ff5252" : "#3e92cc",
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
                     backgroundColor: "#fff",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    transition: "all 0.3s ease",
+                    transition: "all 0.2s ease",
                     "&:hover": {
-                      transform: "scale(1.1)",
-                      boxShadow: "0 6px 20px rgba(0,0,0,0.4)",
+                      transform: "scale(1.15)",
+                      boxShadow: "0 4px 16px rgba(0,0,0,0.4)",
                     },
                   }}
                 >
@@ -301,7 +336,7 @@ export default function Tree({ onSwipeRight }) {
                         backgroundColor: "#f0f0f0",
                       }}
                     >
-                      <span style={{ fontSize: "24px", color: "#999" }}>?</span>
+                      <span style={{ fontSize: iconSize * 0.6, color: "#999" }}>?</span>
                     </Box>
                   ) : (
                     <Box
@@ -321,7 +356,6 @@ export default function Tree({ onSwipeRight }) {
             );
           })}
 
-        {/* 加载指示器 */}
         {loading && (
           <Box
             sx={{
@@ -336,41 +370,31 @@ export default function Tree({ onSwipeRight }) {
           </Box>
         )}
 
-        {/* 录音按钮 */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 60,
-            right: 24,
-            zIndex: 10,
-          }}
-        >
-          <Tooltip title="录音生成我的吉祥物">
-            <Button
-              variant="contained"
-              onClick={() => setOpenGenerate(true)}
-              sx={{
-                minWidth: 70,
-                height: 70,
-                borderRadius: "50%",
-                backgroundColor: "#3e92cc",
-                color: "white",
-                boxShadow: "0 6px 16px rgba(0,0,0,0.3)",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #ff5252, #c53030)",
-                  transform: "scale(1.05)",
-                },
-                fontSize: "1.8rem",
-                fontWeight: "bold",
-              }}
-            >
-              🎤
-            </Button>
-          </Tooltip>
-        </Box>
+        {isFullscreen && (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              zIndex: 10,
+            }}
+          >
+            <Tooltip title="退出全屏">
+              <IconButton
+                onClick={() => setIsFullscreen(false)}
+                sx={{
+                  backgroundColor: "rgba(255,255,255,0.8)",
+                  "&:hover": { backgroundColor: "white" },
+                }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        )}
       </Box>
 
-      {/* 图片预览弹窗 */}
+      {/* 预览弹窗 */}
       <Modal
         open={previewOpen}
         onClose={handleClosePreview}
@@ -435,8 +459,7 @@ export default function Tree({ onSwipeRight }) {
                   objectFit: "contain",
                   borderRadius: 1,
                   boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
-                   // 👇 关键：裁剪掉底部 10%
-                  clipPath: "inset(0 0 5% 0)", 
+                  clipPath: 'inset(0 0 5% 0)', // 添加这一行以裁剪掉底部10%
                 }}
               />
             )}
@@ -464,47 +487,7 @@ export default function Tree({ onSwipeRight }) {
         </Box>
       </Modal>
 
-      {/* 生成吉祥物弹窗 */}
-      <Dialog
-        open={openGenerate}
-        onClose={() => setOpenGenerate(false)}
-        maxWidth="lg"
-        fullWidth
-        fullScreen
-        PaperProps={{
-          sx: {
-            margin: 0,
-            maxHeight: "100vh",
-            height: "100%",
-            borderRadius: 0,
-            overflow: "auto",
-          },
-        }}
-      >
-        <DialogContent sx={{ p: 0, height: "100%" }}>
-          <Box
-            sx={{
-              position: "absolute",
-              top: 16,
-              right: 16,
-              zIndex: 20,
-            }}
-          >
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setOpenGenerate(false)}
-              sx={{ borderRadius: 20, color: "white" }}
-            >
-              关闭
-            </Button>
-          </Box>
-          <Voice />
-        </DialogContent>
-      </Dialog>
-
-      {/* 滑动提示按钮 */}
-      {onSwipeRight && <SwipeHintButton onClick={onSwipeRight} />}
+      {!isFullscreen && onSwipeRight && <Box sx={{ mt: 2 }} />}
     </>
   );
 }

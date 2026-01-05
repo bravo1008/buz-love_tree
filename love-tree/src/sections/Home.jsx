@@ -24,6 +24,17 @@ import { faLocationDot } from "@fortawesome/free-solid-svg-icons";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
+const hangingPositions = [
+  { top: "34%", left: "42%" },
+  { top: "34%", left: "62%" },
+  { top: "40%", left: "55%" },
+  { top: "42%", left: "32%" },
+  { top: "47%", left: "67%" },
+  { top: "49%", left: "37%" },
+  { top: "46%", left: "52%" },
+  { top: "43%", left: "76%" },
+];
+
 // 🔧 修复 Leaflet 默认 marker 图标 404 问题
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -187,6 +198,25 @@ export default function MapSection() {
           {snackbar.message}
         </Alert>
       </Snackbar>
+       <Box
+          sx={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        >
+          <FloatingBubble count={30} />
+        </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        {recording ? '正在录音中... 点击停止' : '点击按钮开始录音'}
+                      </Typography>
     </Container>
   );
 }
